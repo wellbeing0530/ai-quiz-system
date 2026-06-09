@@ -1,0 +1,1632 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人工智能导论 · 智能练习系统 v2</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --bg-card: #1e293b;
+  --bg-sidebar: #0b1120;
+  --text: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --accent: #6366f1;
+  --accent-light: #818cf8;
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --border: #334155;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+}
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  background: var(--bg-sidebar);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  position: fixed;
+  height: 100vh;
+  left: 0; top: 0;
+  z-index: 10;
+  transition: transform 0.3s;
+}
+.sidebar-logo {
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-light), #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 32px;
+  padding: 0 8px;
+}
+.sidebar-logo span { font-size: 12px; display:block; -webkit-text-fill-color: var(--text-secondary); font-weight: 400; margin-top: 2px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: rgba(99,102,241,0.1); color: var(--text); }
+.nav-item.active { background: rgba(99,102,241,0.2); color: var(--accent-light); font-weight: 600; }
+.nav-item .icon { font-size: 20px; width: 24px; text-align: center; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--error);
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+/* Main */
+.main {
+  margin-left: 260px;
+  flex: 1;
+  padding: 32px 40px;
+  min-height: 100vh;
+}
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+.header-title { font-size: 24px; font-weight: 700; }
+.progress-bar-wrap {
+  width: 200px; height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+.stats-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+.stat-card {
+  flex: 1;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--border);
+}
+.stat-icon {
+  font-size: 32px;
+  width: 56px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  background: rgba(99,102,241,0.15);
+}
+.stat-value { font-size: 28px; font-weight: 700; }
+.stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+/* Question Card */
+.question-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 32px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.q-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.q-number {
+  font-size: 14px;
+  color: var(--accent-light);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.q-type-badge {
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  background: rgba(99,102,241,0.2);
+  color: var(--accent-light);
+}
+.q-type-badge.multi { background: rgba(245,158,11,0.2); color: var(--warning); }
+.q-type-badge.bool { background: rgba(34,197,94,0.15); color: var(--success); }
+.q-text {
+  font-size: 18px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+  color: var(--text);
+}
+.options-list { display: flex; flex-direction: column; gap: 12px; }
+.option-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 15px;
+  text-align: left;
+  transition: all 0.2s;
+  width: 100%;
+}
+.option-btn:hover:not(.disabled) { border-color: var(--accent); background: rgba(99,102,241,0.08); transform: translateX(4px); }
+.option-btn.selected { border-color: var(--accent); background: rgba(99,102,241,0.15); }
+.option-btn.correct { border-color: var(--success); background: rgba(34,197,94,0.1); }
+.option-btn.wrong { border-color: var(--error); background: rgba(239,68,68,0.1); }
+.option-btn .letter {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.option-btn.correct .letter { background: var(--success); color: white; }
+.option-btn.wrong .letter { background: var(--error); color: white; }
+.option-btn.selected .letter { background: var(--accent); color: white; }
+.option-btn.disabled { pointer-events: none; }
+/* Result */
+.result-box {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  display: none;
+}
+.result-box.show { display: block; }
+.result-box.correct { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.3); }
+.result-box.wrong { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); }
+.result-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+.result-box.correct .result-title { color: var(--success); }
+.result-box.wrong .result-title { color: var(--error); }
+/* Analysis */
+.analysis-box {
+  margin-top: 16px;
+  padding: 20px;
+  background: rgba(99,102,241,0.05);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 10px;
+  display: none;
+}
+.analysis-box.show { display: block; }
+.analysis-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-light);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.analysis-content {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+.analysis-content .highlight {
+  color: var(--accent-light);
+  font-weight: 600;
+}
+.analysis-content .key-point {
+  display: block;
+  padding: 8px 12px;
+  margin: 8px 0;
+  background: rgba(99,102,241,0.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  font-size: 13px;
+}
+/* Actions */
+.actions-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+.btn {
+  padding: 12px 28px;
+  border-radius: 8px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
+.btn-secondary { background: var(--border); color: var(--text); }
+.btn-secondary:hover { background: #475569; }
+.btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--accent); }
+.btn-sm { padding: 6px 16px; font-size: 13px; }
+/* Wrong Notebook */
+.wrong-list { display: flex; flex-direction: column; gap: 12px; }
+.wrong-item {
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  display: flex;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.wrong-item:hover { border-color: var(--error); transform: translateX(4px); }
+.wrong-q-num {
+  width: 40px; height: 40px;
+  background: rgba(239,68,68,0.15);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--error);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.wrong-info { flex: 1; }
+.wrong-q-text { font-size: 14px; margin-bottom: 6px; line-height: 1.5; }
+.wrong-meta { font-size: 12px; color: var(--text-secondary); }
+.wrong-count {
+  font-size: 12px;
+  color: var(--error);
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* Settings bar */
+.settings-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.setting-select {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+}
+.setting-select:focus { outline: none; border-color: var(--accent); }
+.setting-label { font-size: 13px; color: var(--text-secondary); }
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+.empty-icon { font-size: 64px; margin-bottom: 16px; }
+.empty-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-sidebar); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.4s ease; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.loading { animation: pulse 1.5s infinite; }
+/* ========== MOBILE & TABLET ========== */
+.menu-toggle {
+  display: none;
+  position: fixed;
+  top: 12px; left: 12px;
+  z-index: 100;
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 22px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+.menu-toggle:hover { border-color: var(--accent); background: rgba(99,102,241,0.1); }
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9;
+}
+
+/* Tablet: 769-1024px */
+@media (max-width: 1024px) {
+  .main { padding: 24px; }
+  .stats-row { gap: 12px; }
+  .stat-card { padding: 14px 16px; }
+  .stat-icon { font-size: 24px; width: 44px; height: 44px; }
+  .stat-value { font-size: 22px; }
+  .countdown-timer { font-size: 28px; }
+  .countdown-wrap-top { padding: 12px 18px; gap: 10px; }
+  .q-text { font-size: 16px; }
+  .question-card { padding: 24px; }
+  .settings-bar { gap: 8px; }
+  .header { margin-bottom: 20px; }
+}
+
+/* Phone: <=768px */
+@media (max-width: 768px) {
+  .menu-toggle { display: flex; }
+  .sidebar {
+    transform: translateX(-100%);
+    width: 260px;
+    z-index: 20;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.show { display: block; }
+  .main { margin-left: 0 !important; padding: 16px 12px; }
+  .header { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+  .header-title { font-size: 20px; }
+  .progress-bar-wrap { width: 100%; }
+  .stats-row { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .stat-card { min-width: calc(50% - 6px); padding: 12px 14px; gap: 10px; }
+  .stat-icon { font-size: 22px; width: 40px; height: 40px; border-radius: 8px; }
+  .stat-value { font-size: 20px; }
+  .stat-label { font-size: 11px; }
+  .countdown-wrap-top { padding: 12px 14px; gap: 8px; border-radius: 10px; margin-bottom: 14px; }
+  .countdown-timer { font-size: 26px; }
+  .countdown-label { font-size: 12px; }
+  .pause-btn { padding: 6px 12px; font-size: 13px; }
+  .xp-bar-wrap { margin-top: 8px; }
+  .settings-bar { gap: 6px; margin-bottom: 16px; }
+  .setting-select { font-size: 13px; padding: 6px 10px; }
+  .setting-label { font-size: 12px; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .question-card { padding: 20px 16px; border-radius: 10px; }
+  .q-header { flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .q-text { font-size: 15px; line-height: 1.6; margin-bottom: 20px; }
+  .option-btn { padding: 14px 16px; font-size: 14px; gap: 10px; }
+  .option-btn .letter { width: 32px; height: 32px; font-size: 13px; }
+  .actions-row { flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .btn { padding: 10px 20px; font-size: 14px; }
+  .result-box { padding: 16px; }
+  .analysis-box { padding: 16px; }
+  .streak-display { font-size: 12px; padding: 3px 10px; }
+  .wrong-item { padding: 14px; gap: 10px; }
+  .wrong-q-num { width: 34px; height: 34px; font-size: 13px; }
+  .wrong-q-text { font-size: 13px; }
+  .wrong-count { font-size: 11px; }
+  .countdown-wrap { flex-wrap: wrap; }
+  .countdown-text { font-size: 11px; }
+  .encourage-msg { font-size: 16px; }
+  .empty-state { padding: 40px 16px; }
+  .empty-icon { font-size: 48px; }
+  .combo-popup { font-size: 32px; }
+  .sound-toggle { padding: 5px 10px; font-size: 14px; }
+}
+
+/* Small phone: <=400px */
+@media (max-width: 400px) {
+  .main { padding: 12px 8px; }
+  .stat-card { min-width: calc(50% - 4px); padding: 10px; gap: 6px; }
+  .stat-icon { font-size: 18px; width: 34px; height: 34px; }
+  .stat-value { font-size: 17px; }
+  .countdown-timer { font-size: 22px; }
+  .countdown-wrap-top { padding: 10px; gap: 6px; }
+  .countdown-label { font-size: 11px; display: none; }
+  .q-text { font-size: 14px; }
+  .question-card { padding: 14px 12px; }
+  .option-btn { padding: 12px 14px; font-size: 13px; }
+  .btn { padding: 9px 16px; font-size: 13px; }
+  .header-title { font-size: 18px; }
+}
+/* Countdown & Encourage */
+.countdown-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(99,102,241,0.06);
+  border-radius: 8px;
+}
+.countdown-bar {
+  flex: 1;
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.countdown-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--success), var(--accent-light));
+  border-radius: 3px;
+  width: 100%;
+}
+.countdown-fill.running { animation: shrinkBar 0.5s linear forwards; }
+@keyframes shrinkBar { from { width: 100%; } to { width: 0%; } }
+.countdown-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  min-width: 50px;
+  text-align: right;
+}
+.encourage-msg {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  animation: fadeIn 0.3s ease;
+}
+.encourage-msg.great { color: var(--success); }
+.encourage-msg.wow { color: var(--accent-light); }
+.encourage-msg.fire { color: #f97316; }
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.15); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.bounce { animation: bounceIn 0.5s ease; display: inline-block; }
+
+/* v4: Countdown Timer */
+.countdown-wrap-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+}
+.countdown-timer {
+  font-size: 36px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono','Cascadia Code','Consolas',monospace;
+  color: var(--accent-light);
+  transition: color 0.3s;
+}
+.countdown-timer.warning { color: var(--warning); }
+.countdown-timer.danger { color: var(--error); animation: pulse 0.5s infinite; }
+.countdown-timer.overtime { color: var(--error); }
+.countdown-timer.paused-text { color: var(--text-secondary); font-size: 18px; font-weight: 600; }
+.countdown-label { font-size: 14px; color: var(--text-secondary); }
+.pause-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.pause-btn:hover { background: rgba(99,102,241,0.15); border-color: var(--accent); }
+.pause-btn.paused { background: rgba(245,158,11,0.15); border-color: var(--warning); color: var(--warning); }
+/* Paused overlay */
+.option-btn.pause-disabled { opacity: 0.4; pointer-events: none; cursor: not-allowed; }
+
+/* ========== MINIMAL MODE ========== */
+body.minimal-mode .sidebar { display: none; }
+body.minimal-mode .main { margin-left: 0 !important; }
+body.minimal-mode .stats-row { display: none; }
+body.minimal-mode .xp-bar-wrap { display: none; }
+body.minimal-mode .settings-bar { display: none; }
+body.minimal-mode .progress-bar-wrap { display: none; }
+body.minimal-mode .header { margin-bottom: 12px; }
+body.minimal-mode .header-title { font-size: 16px; }
+body.minimal-mode .question-card { max-width: 800px; margin: 0 auto; }
+body.minimal-mode .menu-toggle { top: 6px; left: 6px; }
+.minimal-toggle {
+  position: fixed;
+  top: 12px; right: 12px;
+  z-index: 100;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+.minimal-toggle:hover { border-color: var(--accent); color: var(--text); background: rgba(99,102,241,0.1); }
+.minimal-toggle.active { background: rgba(99,102,241,0.15); border-color: var(--accent-light); color: var(--accent-light); }
+body.minimal-mode .minimal-toggle { top: 6px; }
+body.minimal-mode *,
+body.minimal-mode *::before,
+body.minimal-mode *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Mobile: minimal mode adjustments */
+@media (max-width: 768px) {
+  body.minimal-mode .minimal-toggle { top: 6px; right: 6px; font-size: 12px; padding: 5px 10px; }
+  body.minimal-mode .menu-toggle { top: 6px; left: 6px; }
+  body.minimal-mode .header-title { font-size: 14px; }
+}
+</style>
+
+<style>
+/* === v3: Timer, Streak, Confetti, Particles, XP, Sound === */
+.timer-display{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--accent-light);font-weight:600;font-variant-numeric:tabular-nums;}
+.timer-display.warning{color:var(--warning);}
+.timer-display.danger{color:var(--error);animation:pulse 0.5s infinite;}
+.streak-display{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(249,115,22,0.1);color:#f97316;transition:all 0.3s;}
+.streak-display.hot{background:rgba(249,115,22,0.15);}
+.streak-display.fire{background:rgba(249,115,22,0.2);animation:firePulse 0.6s infinite;}
+.streak-display.godlike{background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(249,115,22,0.3));animation:godGlow 1s infinite;}
+@keyframes firePulse{0%,100%{box-shadow:0 0 8px rgba(249,115,22,0.4)}50%{box-shadow:0 0 20px rgba(249,115,22,0.7)}}
+@keyframes godGlow{0%,100%{box-shadow:0 0 12px rgba(99,102,241,0.5)}33%{box-shadow:0 0 24px rgba(249,115,22,0.6)}66%{box-shadow:0 0 24px rgba(168,85,247,0.6)}}
+.xp-bar-wrap{margin-top:12px;display:flex;align-items:center;gap:10px;}
+.xp-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#f97316);border-radius:3px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1);}
+.xp-label{font-size:12px;color:#f59e0b;font-weight:700;white-space:nowrap;}
+.level-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700;background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(168,85,247,0.2));color:var(--accent-light);border:1px solid rgba(99,102,241,0.3);}
+.level-up-anim{animation:levelUp 0.8s ease;}
+@keyframes levelUp{0%{transform:scale(1)}30%{transform:scale(1.3);filter:brightness(1.5)}100%{transform:scale(1);filter:brightness(1)}}
+#confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;}
+#particles-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.4;}
+.question-card.slide-in-right{animation:slideInRight 0.4s cubic-bezier(0.4,0,0.2,1);}
+.question-card.slide-in-left{animation:slideInLeft 0.4s cubic-bezier(0.4,0,0.2,1);}
+@keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:translateX(0)}}
+.sound-toggle{background:none;border:1px solid var(--border);color:var(--text-secondary);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:16px;transition:all 0.2s;}
+.sound-toggle:hover{border-color:var(--accent);color:var(--text);}
+.sound-toggle.muted{opacity:0.4;}
+@keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-4px)}20%,40%,60%,80%{transform:translateX(4px)}}
+.shake{animation:shake 0.5s ease;}
+.speed-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;}
+.speed-badge.fast{background:rgba(34,197,94,0.15);color:var(--success);}
+.speed-badge.normal{background:rgba(99,102,241,0.15);color:var(--accent-light);}
+.speed-badge.slow{background:rgba(239,68,68,0.12);color:var(--error);}
+.combo-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:48px;font-weight:900;pointer-events:none;z-index:9998;text-shadow:0 0 30px rgba(249,115,22,0.8);animation:comboPopup 1s ease forwards;}
+@keyframes comboPopup{0%{transform:translate(-50%,-50%) scale(0);opacity:1}50%{transform:translate(-50%,-50%) scale(1.5);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+
+
+</style>
+
+</head>
+<body>
+<button class="minimal-toggle" id="minimalToggle" onclick="toggleMinimalMode()" title="切换极简模式">🧘 极简</button>
+<canvas id="particles-canvas"></canvas>
+<canvas id="confetti-canvas"></canvas>
+
+
+<button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">🤖 AI 导论<span>智能练习系统</span></div>
+  <button class="nav-item active" data-view="practice">
+    <span class="icon">📝</span> 题目练习
+  </button>
+  <button class="nav-item" data-view="wrong">
+    <span class="icon">📕</span> 错题本
+    <span class="nav-badge" id="wrongBadge" style="display:none">0</span>
+  </button>
+  <button class="nav-item" data-view="stats">
+    <span class="icon">📊</span> 学习统计
+  </button>
+  <button class="nav-item" id="resetBtn">
+    <span class="icon">🔄</span> 重置数据
+  </button>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<main class="main" id="mainContent">
+  <!-- Dynamic content -->
+</main>
+
+<script>
+// ========== DATA ==========
+const ALL_QUESTIONS = [{"id":1,"type":"single","question":"图灵于____年发表论文《计算与智能》，提出图灵测试。","options":[{"letter":"A","text":"1940"},{"letter":"B","text":"1950"},{"letter":"C","text":"1960"},{"letter":"D","text":"1970"}],"answer":"B"},{"id":2,"type":"single","question":"截至目前，人工智能经历了____次低谷。","options":[{"letter":"A","text":"一"},{"letter":"B","text":"二"},{"letter":"C","text":"三"},{"letter":"D","text":"四"}],"answer":"B"},{"id":3,"type":"single","question":"图灵测试要求，超过____的测试者不能确定出被测试者是人还是机器。","options":[{"letter":"A","text":"10%"},{"letter":"B","text":"20%"},{"letter":"C","text":"30%"},{"letter":"D","text":"40%"}],"answer":"C"},{"id":4,"type":"single","question":"以下不属于图灵机组件的是____。","options":[{"letter":"A","text":"读写头"},{"letter":"B","text":"控制器"},{"letter":"C","text":"卡带"},{"letter":"D","text":"仿真器"}],"answer":"D"},{"id":5,"type":"single","question":"下面关于神经元的说法，错误的是____。","options":[{"letter":"A","text":"神经元结构上大致都可分成细胞体和神经突两部分"},{"letter":"B","text":"神经突又分树突(Dendrites)和轴突(Axon)两种"},{"letter":"C","text":"树突接受刺激(神经冲动)"},{"letter":"D","text":"轴突接受刺激(神经冲动)"}],"answer":"D"},{"id":6,"type":"single","question":"“人工智能”这一概念诞生于____会议。","options":[{"letter":"A","text":"达特茅斯"},{"letter":"B","text":"华盛顿"},{"letter":"C","text":"索尔维"},{"letter":"D","text":"雅尔塔"}],"answer":"A"},{"id":7,"type":"single","question":"摩尔定律指出，PC芯片每____个月性能提升一倍。","options":[{"letter":"A","text":"6"},{"letter":"B","text":"12"},{"letter":"C","text":"16"},{"letter":"D","text":"18"}],"answer":"D"},{"id":8,"type":"single","question":"专家系统是在第____次AI崛起时出现的。","options":[{"letter":"A","text":"一"},{"letter":"B","text":"二"},{"letter":"C","text":"三"},{"letter":"D","text":"四"}],"answer":"B"},{"id":9,"type":"single","question":"下面不属于人工智能三大学派的是____。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"D"},{"id":10,"type":"single","question":"专家系统属于人工智能____学派的产物。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"A"},{"id":11,"type":"single","question":"感知机属于人工智能____学派的产物。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"B"},{"id":12,"type":"single","question":"马文·明斯基(Marvin Minsky)和西蒙·派珀特(SeymourPapert) 出版的《感知器：计算几何简介》指出，____层的神经网络无法解决不可线性分割的问题(如异或问题)。","options":[{"letter":"A","text":"一"},{"letter":"B","text":"二"},{"letter":"C","text":"三"},{"letter":"D","text":"四"}],"answer":"A"},{"id":13,"type":"single","question":"下面的四个异或(⊕)计算，正确的是____。","options":[{"letter":"A","text":"0⊕0=1"},{"letter":"B","text":"0⊕1=0"},{"letter":"C","text":"1⊕0=0"},{"letter":"D","text":"1⊕1=0"}],"answer":"D"},{"id":14,"type":"single","question":"“AlphaGo”称霸围棋是第____次AI 崛起的典型示例。","options":[{"letter":"A","text":"一"},{"letter":"B","text":"二"},{"letter":"C","text":"三"},{"letter":"D","text":"四"}],"answer":"C"},{"id":15,"type":"single","question":"知识图谱是人工智能____学派的代表性成果。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"A"},{"id":16,"type":"single","question":"深度学习是人工智能____学派的代表性成果。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"B"},{"id":17,"type":"single","question":"人工智能____学派起源于控制论。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"C"},{"id":18,"type":"single","question":"人工智能____学派起源于数理逻辑和逻辑推理。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"A"},{"id":19,"type":"single","question":"人工智能____学派起源于仿生学，特别是人脑模型的研究。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"B"},{"id":20,"type":"single","question":"人工智能____学派主张人工智能应从功能模拟入手。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"A"},{"id":21,"type":"single","question":"人工智能____学派主张人工智能应从结构设计入手。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"B"},{"id":22,"type":"single","question":"人工智能____学派主张利用机器对环境作用后的反馈来实现智能进化。","options":[{"letter":"A","text":"符号主义Symbolism"},{"letter":"B","text":"连接主义Connectionism"},{"letter":"C","text":"行为主义Behaviorism"},{"letter":"D","text":"生成主义Generativism"}],"answer":"C"},{"id":23,"type":"single","question":"以下四个深度学习模型中，最早被提出的是____。","options":[{"letter":"A","text":"ZeilerNet"},{"letter":"B","text":"GoogLeNet"},{"letter":"C","text":"AlexNet"},{"letter":"D","text":"ResNet"}],"answer":"C"},{"id":24,"type":"single","question":"下面哪个模型在2016年3月与围棋世界冠军李世石进行围棋人机大战并以4比1获胜____。","options":[{"letter":"A","text":"深蓝"},{"letter":"B","text":"AlexNet"},{"letter":"C","text":"ResNet"},{"letter":"D","text":"AlphaGo"}],"answer":"D"},{"id":25,"type":"single","question":"以下由OpenAI 提出的大模型中，参数量在15亿级别的是____。","options":[{"letter":"A","text":"GPT-1"},{"letter":"B","text":"GPT-2"},{"letter":"C","text":"GPT-3"},{"letter":"D","text":"ChatGPT"}],"answer":"B"},{"id":26,"type":"single","question":"以下四个大模型中，最早被提出的是____。","options":[{"letter":"A","text":"GPT-2"},{"letter":"B","text":"BERT"},{"letter":"C","text":"Turing-NLP"},{"letter":"D","text":"SWITCHT"}],"answer":"B"},{"id":27,"type":"single","question":"不属于新一代人工智能提出的“三元空间”结构的是____。","options":[{"letter":"A","text":"信息网络"},{"letter":"B","text":"仿生学"},{"letter":"C","text":"人类"},{"letter":"D","text":"物理"}],"answer":"B"},{"id":28,"type":"single","question":"2017年，国务院印发了《新一代人工智能发展规划》。以下不属于中国新一代人工智能战略布局所需的基础理论是____。","options":[{"letter":"A","text":"大数据智能"},{"letter":"B","text":"人机混合智能"},{"letter":"C","text":"初级机器学习"},{"letter":"D","text":"群体智能"}],"answer":"C"},{"id":29,"type":"single","question":"下面关于大数据智能的层级表示，正确的是____。","options":[{"letter":"A","text":"数据->知识->决策"},{"letter":"B","text":"决策->知识->数据"},{"letter":"C","text":"知识->数据->决策"},{"letter":"D","text":"数据->决策->知识"}],"answer":"A"},{"id":30,"type":"single","question":"我国自____年进入大模型快速发展期。","options":[{"letter":"A","text":"2016"},{"letter":"B","text":"2018"},{"letter":"C","text":"2020"},{"letter":"D","text":"2022"}],"answer":"C"},{"id":31,"type":"single","question":"下面不属于大数据智能流程的是____。","options":[{"letter":"A","text":"数据"},{"letter":"B","text":"决策"},{"letter":"C","text":"知识"},{"letter":"D","text":"思想"}],"answer":"D"},{"id":32,"type":"single","question":"下面不属于国产大模型的是____。","options":[{"letter":"A","text":"Moss"},{"letter":"B","text":"WeLM"},{"letter":"C","text":"GLM"},{"letter":"D","text":"Gemma"}],"answer":"D"},{"id":33,"type":"single","question":"下列的DeepSeek 模型中，强调推理与思维链的是____。","options":[{"letter":"A","text":"DeepSeek‐V2"},{"letter":"B","text":"DeepSeek‐V3"},{"letter":"C","text":"DeepSeek‐R1"},{"letter":"D","text":"以上模型都不是"}],"answer":"C"},{"id":34,"type":"single","question":"下列关于DeepSeek 的说法，错误的是____。","options":[{"letter":"A","text":"DeepSeek 是国产大模型"},{"letter":"B","text":"DeepSeek 目前主要分为V系列与R 系列"},{"letter":"C","text":"DeepSeek 在链式思维和复杂逻辑任务上与 GPT-4、Claude等相抗衡"},{"letter":"D","text":"DeepSeek 完全闭源"}],"answer":"D"},{"id":35,"type":"single","question":"在人机混合智能中，不属于人类智能提供的思维是____。","options":[{"letter":"A","text":"抽象思维：逻辑与推理"},{"letter":"B","text":"形象思维：想象与创造"},{"letter":"C","text":"直觉思维：灵感与顿悟"},{"letter":"D","text":"幻觉思维：发散与空想"}],"answer":"D"},{"id":36,"type":"single","question":"在人机混合智能中，不属于机器智能提供的能力是____。","options":[{"letter":"A","text":"有限的逻辑与推理能力"},{"letter":"B","text":"神经网络的快速推断能力"},{"letter":"C","text":"多模态感知"},{"letter":"D","text":"情绪与情感"}],"answer":"D"},{"id":37,"type":"single","question":"在人机混合智能中，不属于人类智能对机器智能提供的指导的是____。","options":[{"letter":"A","text":"知识灌输"},{"letter":"B","text":"技能强化"},{"letter":"C","text":"指令引导"},{"letter":"D","text":"海量参数寻优"}],"answer":"D"},{"id":38,"type":"single","question":"以下关于群体智能历史起源的说法，错误的是____。","options":[{"letter":"A","text":"群体智慧由英国统计学家Francis Galton 提出"},{"letter":"B","text":"基于群体智慧展现的智能在很多任务中往往超过少数个体"},{"letter":"C","text":"基于群体智慧展现的智能在很多任务中甚至可以超过专家的能力"},{"letter":"D","text":"群体智慧与社会学、认知学无关"}],"answer":"D"},{"id":39,"type":"single","question":"以下不属于人工智能目前的主要模式的是____。","options":[{"letter":"A","text":"数据"},{"letter":"B","text":"操作系统"},{"letter":"C","text":"算法(模型)"},{"letter":"D","text":"算力"}],"answer":"B"},{"id":40,"type":"single","question":"下面关于基于大模型的智能体社会的说法，错误的是____。","options":[{"letter":"A","text":"每个Agent 都有固定的角色"},{"letter":"B","text":"每个Agent 都有自己的LLM 模型"},{"letter":"C","text":"Agent 无需记忆"},{"letter":"D","text":"Agent 间可以相互协作"}],"answer":"C"},{"id":41,"type":"single","question":"神经系统的基本组成单元是____。","options":[{"letter":"A","text":"神经元"},{"letter":"B","text":"细胞"},{"letter":"C","text":"突触"},{"letter":"D","text":"大脑"}],"answer":"A"},{"id":42,"type":"single","question":"神经元的主要构成包括树突、细胞体和____。","options":[{"letter":"A","text":"突触"},{"letter":"B","text":"轴突"},{"letter":"C","text":"细胞核"},{"letter":"D","text":"髓鞘"}],"answer":"B"},{"id":43,"type":"single","question":"人类大脑中大约有____个神经元。","options":[{"letter":"A","text":"100亿"},{"letter":"B","text":"450亿"},{"letter":"C","text":"100万亿"},{"letter":"D","text":"860亿"}],"answer":"D"},{"id":44,"type":"single","question":"人类大脑中大约有____条神经连接。","options":[{"letter":"A","text":"100万亿"},{"letter":"B","text":"1000万亿"},{"letter":"C","text":"860亿"},{"letter":"D","text":"100亿"}],"answer":"A"},{"id":45,"type":"single","question":"1873 年，意大利神经生物学家 Camillo Golgi 发明了____的方法，第一次在显微镜下观察到了神经细胞和神经胶质细胞。","options":[{"letter":"A","text":"神经元银染色法"},{"letter":"B","text":"单细胞记录法"},{"letter":"C","text":"电子显微镜观察"},{"letter":"D","text":"荧光标记法"}],"answer":"A"},{"id":46,"type":"single","question":"1897年，英国科学家C.S.Sherriton 提出用____来描述一个神经元与另一个神经元之间的接触部位，并认为它的主要作用是让两个神经元进行信息传递，使得思维、推理、联想等复杂的脑机能成为可能。","options":[{"letter":"A","text":"轴突"},{"letter":"B","text":"突触"},{"letter":"C","text":"细胞膜"},{"letter":"D","text":"髓鞘"}],"answer":"B"},{"id":47,"type":"single","question":"大脑最外边有一层颜色较深的褶皱结构，厚度约2～3厘米，面积约2200平方厘米，它是整个大脑神经细胞最集中的区域，被认为是一切智能的来源地，这部分结构被称为____。","options":[{"letter":"A","text":"白质"},{"letter":"B","text":"灰质"},{"letter":"C","text":"脑膜"},{"letter":"D","text":"脑脊液"}],"answer":"B"},{"id":48,"type":"single","question":"____在大脑皮层的下面，是神经细胞的轴突所在，它将大脑的不同区域以及大脑和脊髓等其他神经系统部分连接起来，就像是大脑的 “通信网络”。","options":[{"letter":"A","text":"白质"},{"letter":"B","text":"灰质"},{"letter":"C","text":"脑膜"},{"letter":"D","text":"脑脊液"}],"answer":"A"},{"id":49,"type":"single","question":"____充满在脑室系统、蛛网膜下腔和脊髓中央管内，在大脑和脊髓周围形成了一个液体缓冲层，就像一个柔软的 “垫子”，能够减轻头部受到外伤时对脑和脊髓的冲击力。同时也为脑组织提供营养物质，带走代谢废物。","options":[{"letter":"A","text":"白质"},{"letter":"B","text":"灰质"},{"letter":"C","text":"脑膜"},{"letter":"D","text":"脑脊液"}],"answer":"D"},{"id":50,"type":"single","question":"大脑的解剖结构可以分为“三沟五叶”。 五叶指额叶、顶叶、颞叶、枕叶及岛叶。其中，大脑的视觉皮层位于____，是大脑皮层中处理视觉信息的关键区域。","options":[{"letter":"A","text":"额叶"},{"letter":"B","text":"顶叶"},{"letter":"C","text":"颞叶"},{"letter":"D","text":"枕叶"}],"answer":"D"},{"id":51,"type":"single","question":"大脑的解剖结构可以分为“三沟五叶”，这里面的五叶指额叶、顶叶、颞叶、枕叶及岛叶。其中，与听觉功能相关的脑区主要位于____。","options":[{"letter":"A","text":"额叶"},{"letter":"B","text":"顶叶"},{"letter":"C","text":"颞叶"},{"letter":"D","text":"枕叶"}],"answer":"C"},{"id":52,"type":"single","question":"源自眼睛的视觉输入经过丘脑的外侧膝状核，首先传递至大脑的初级视觉皮层（primary visual cortex）。初级视觉皮层又称V1 区，位于____。","options":[{"letter":"A","text":"额叶"},{"letter":"B","text":"顶叶"},{"letter":"C","text":"颞叶"},{"letter":"D","text":"枕叶"}],"answer":"D"},{"id":53,"type":"single","question":"20世纪50年代，大卫·休伯尔（David Hubel）和托斯坦·维瑟尔（TorstenWiesel）研究发现，猫的视觉皮层中的简单细胞和复杂细胞通过卷积和下采样的方式对视觉信息进行____处理。其中，简单细胞首先对基本的视觉特征进行提取，然后复杂细胞对简单细胞提供的局部信息进行整合，形成更为抽象和高级的视觉表示。这一视觉系统的信息____加工方式在上世纪 80年代初被日本科学家福岛邦彦借鉴设计了神经网络模型Neocognitron，是现代CNN的雏形。","options":[{"letter":"A","text":"集中"},{"letter":"B","text":"分层"},{"letter":"C","text":"分布式"}],"answer":"B"},{"id":54,"type":"single","question":"视觉信息在传递到大脑初级视觉皮层之后，开始被两条独立的视觉通路分别进行处理：其中一条被称为____，也叫“what” 通路，主要负责物体内容的感知和识别。","options":[{"letter":"A","text":"背侧视觉通路"},{"letter":"B","text":"腹侧视觉通路"},{"letter":"C","text":"旁侧视觉通路"},{"letter":"D","text":"内侧视觉通路"}],"answer":"B"},{"id":55,"type":"single","question":"视觉信息在传递到大脑初级视觉皮层之后，开始被两条独立的视觉通路分别进行处理：其中一条被称为____，也叫“where”通路，主要负责物体空间位置的感知和识别。","options":[{"letter":"A","text":"背侧视觉通路"},{"letter":"B","text":"腹侧视觉通路"},{"letter":"C","text":"旁侧视觉通路"},{"letter":"D","text":"内侧视觉通路"}],"answer":"A"},{"id":56,"type":"single","question":"在人的大脑中存在着多个专门加工某一特定类别物体的脑区，这一现象被称为物体识别的____加工理论。","options":[{"letter":"A","text":"特异性"},{"letter":"B","text":"整体性"},{"letter":"C","text":"分布式"}],"answer":"A"},{"id":57,"type":"single","question":"从初级听觉皮层出发，大脑可分离出两条主要的独立传导路径进行声音的感知和识别。其中，腹侧听觉通路，又称“what”通路，主要负责声音 ____的识别。","options":[{"letter":"A","text":"内容"},{"letter":"B","text":"方向"},{"letter":"C","text":"大小"},{"letter":"D","text":"频率"}],"answer":"A"},{"id":58,"type":"single","question":"从初级听觉皮层出发，大脑可分离出两条主要的独立传导路径进行声音的感知和识别。其中，听觉背侧通路，又称“where”通路，其主要功能是声音的 ()","options":[{"letter":"A","text":"内容识别"},{"letter":"B","text":"定位"},{"letter":"C","text":"大小识别"},{"letter":"D","text":"频率识别"}],"answer":"B"},{"id":59,"type":"single","question":"我们大脑中与语言功能相关的脑区主要位于____。","options":[{"letter":"A","text":"左半球大脑"},{"letter":"B","text":"右半球大脑"},{"letter":"C","text":"两侧大脑且均匀分布"}],"answer":"A"},{"id":60,"type":"single","question":"大脑中有两个重要的脑区与语言的认知活动关系密切，分别是Broca 脑区和Wernicke脑区，其中，Broca 脑区在____加工中起重要作用。","options":[{"letter":"A","text":"语法"},{"letter":"B","text":"声音"},{"letter":"C","text":"音频"},{"letter":"D","text":"语义"}],"answer":"A"},{"id":61,"type":"single","question":"大脑中有两个重要的脑区与语言的认知活动关系密切，分别是Broca 脑区和Wernicke脑区，其中，Wernicke 脑区在____中起重要作用。","options":[{"letter":"A","text":"语法加工"},{"letter":"B","text":"声音识别"},{"letter":"C","text":"音频辨识"},{"letter":"D","text":"语义理解"}],"answer":"D"},{"id":62,"type":"single","question":"根据信息维持时间的长短，记忆可以分为三种类型：感觉记忆、短时记忆和长时记忆。其中，____是指信息在几秒到几分钟内保持的记忆，通常需要不断的复述才能维持。","options":[{"letter":"A","text":"感觉记忆"},{"letter":"B","text":"短时记忆"},{"letter":"C","text":"长时记忆"}],"answer":"B"},{"id":63,"type":"single","question":"按照信息维持时间的长短，记忆可以分为三种类型：感觉记忆、短时记忆和长时记忆。其中，____是指信息可以保持几天到数十年的记忆，是记忆系统中容量最大且最持久的部分","options":[{"letter":"A","text":"感觉记忆"},{"letter":"B","text":"短时记忆"},{"letter":"C","text":"长时记忆"}],"answer":"C"},{"id":64,"type":"single","question":"大脑中有一个区域在记忆形成中起到了非常关键的作用，该区域位于____。","options":[{"letter":"A","text":"海马体"},{"letter":"B","text":"杏仁核"},{"letter":"C","text":"前额叶"},{"letter":"D","text":"小脑"}],"answer":"A"},{"id":65,"type":"single","question":"情绪是人脑的一种基本认知功能。从心理学的角度来看,情绪是一种复杂的体验,包含主观体验，生理反应，行为表现三个部分。其中，____是指个体在情绪体验期间通过面部表情、肢体姿势和具体动作等方式所展现的外部行为。通过观察个体的____，我们可以推断其情绪状态,从而更好地理解和评估情绪的全面影响。","options":[{"letter":"A","text":"主观体验"},{"letter":"B","text":"生理反应"},{"letter":"C","text":"行为表现"}],"answer":"C"},{"id":66,"type":"single","question":"认知神经科学研究发现，大脑中有多个脑区负责情绪和情感认知。大脑边缘系统中的____是其中最重要的脑区，主要负责感知和产生情绪，尤其是恐惧情绪。","options":[{"letter":"A","text":"海马体"},{"letter":"B","text":"杏仁核"},{"letter":"C","text":"扣带回"}],"answer":"B"},{"id":67,"type":"single","question":"通过获取并分析大脑的神经活动信号，从而获取特定心理状态、感官或行为信息的过程被称为____。","options":[{"letter":"A","text":"脑编码"},{"letter":"B","text":"脑解码"},{"letter":"C","text":"脑重塑"},{"letter":"D","text":"脑可视化"}],"answer":"B"},{"id":68,"type":"single","question":"通过借鉴或模仿大脑的结构和功能，从而开发出具有大脑智能或认知能力的计算系统或技术被称为____。","options":[{"letter":"A","text":"脑编码"},{"letter":"B","text":"脑解码"},{"letter":"C","text":"类脑计算"},{"letter":"D","text":"脑重塑"}],"answer":"C"},{"id":69,"type":"single","question":"在大脑和外部设备间建立通信和控制的技术被称为____技术。","options":[{"letter":"A","text":"脑编码"},{"letter":"B","text":"脑解码"},{"letter":"C","text":"脑机接口"},{"letter":"D","text":"脑重塑"}],"answer":"C"},{"id":70,"type":"single","question":"受____的启发，神经科学家麦卡洛克(Warren McCulloch)和数学家皮茨(WalterPitts)在 1943 年合作提出了以他们名字首字母命名的“M-P”模型，这是现代人工神经网络的基础","options":[{"letter":"A","text":"神经元细胞结构特性及信息传递方式"},{"letter":"B","text":"大脑视觉系统层次性加工方式"},{"letter":"C","text":"大脑视觉系统双通路理论"},{"letter":"D","text":"神经突触连接理论"}],"answer":"A"},{"id":71,"type":"single","question":"1957年，美国心理学家弗兰克·罗森布拉特 (Frank Rosenblatt) 提出了____，在一定程度上模拟了人类的思维过程，是第一个具有学习能力的算法模型。","options":[{"letter":"A","text":"感知机"},{"letter":"B","text":"Neocognitron"},{"letter":"C","text":"CNN"},{"letter":"D","text":"Hebb 学习规则"}],"answer":"A"},{"id":72,"type":"single","question":"1980年，日本科学家福岛邦彦首次将视觉感受野以及视觉皮层分层加工方式的概念引入人工神经网络，设计出了神经网络模型____，它被认为是卷积神经网络的雏形。","options":[{"letter":"A","text":"CNN"},{"letter":"B","text":"Neocognitron"},{"letter":"C","text":"感知机"},{"letter":"D","text":"Hebb 学习规则"}],"answer":"B"},{"id":73,"type":"single","question":"1989年，杨立昆（Yann LeCun）将杰弗里・辛顿(Geoffrey Hinton)提出的____算法引入到卷积神经网络的优化中，开发出了LeNet，被认为是最早用于实际应用的卷积神经网络模型。","options":[{"letter":"A","text":"Hebb 学习"},{"letter":"B","text":"反向传播算法"},{"letter":"C","text":"梯度下降"},{"letter":"D","text":"最小二乘优化"}],"answer":"B"},{"id":74,"type":"single","question":"2012 年，以____为核心算法开发的 AlexNet 在大规模视觉识别挑战赛(ILSVRC)中以领先第二名 10.8个百分点的优势一举夺得比赛冠军，开启了以深度神经网络为代表的人工智能技术在计算机视觉领域应用的浪潮。","options":[{"letter":"A","text":"Hebb 学习"},{"letter":"B","text":"神经网络"},{"letter":"C","text":"CNN"},{"letter":"D","text":"Transformer"}],"answer":"C"},{"id":75,"type":"single","question":"1982年，美国物理学家约翰-霍普菲尔德（John Hopfield）设计出了具有存储和记忆功能的Hopfield神经网络。2024年，约翰-霍普菲尔德和杰夫.辛顿（GeoffreyHinton）共同获得诺贝尔____奖，以表彰他们“基于人工神经网络实现机器学习的基础性发现和发明”。","options":[{"letter":"A","text":"化学"},{"letter":"B","text":"物理学"},{"letter":"C","text":"生理或医学"},{"letter":"D","text":"经济学"}],"answer":"B"},{"id":76,"type":"single","question":"1997 年，Sepp Hochreiter（霍克赖特）和施密德胡贝尔（Schmidhuber）提出了____，通过引入复杂的门控机制，能够有效控制信息流动，记住长期的依赖信息，忘记无关的细节信息，从而有效缓解模型训练中梯度消失和爆炸的问题。","options":[{"letter":"A","text":"长短期记忆网络（Long Short-Term Memory，LSTM）"},{"letter":"B","text":"循环神经网络（Recurrent Neural Network, RNN）"},{"letter":"C","text":"卷积神经网络（ConvolutionalNeural Networks, CNN）"},{"letter":"D","text":"Hopfield 神经网络"}],"answer":"A"},{"id":77,"type":"single","question":"2017 年，Google 研究团队提出了以____为核心算法的 Transformer。Transformer 对数据的处理方式类似于大脑在处理信息时的聚焦行为，能够使模型更加关注输入序列中的关键部分，更好地处理长序列数据中的复杂语义关系，从而提高模型的处理效率和准确性。","options":[{"letter":"A","text":"自注意力机制"},{"letter":"B","text":"卷积"},{"letter":"C","text":"反向传播"},{"letter":"D","text":"控制门"}],"answer":"A"},{"id":78,"type":"single","question":"谷歌 DeepMind 团队开发的 AlphaGo 系列，利用了深度神经网络强大的特征提取能力和____的决策能力，使得智能体能够在复杂的环境中学习到更加高效的行为策略，在围棋领域取得了重大突破，击败了人类顶尖棋手。","options":[{"letter":"A","text":"Transformer"},{"letter":"B","text":"强化学习"},{"letter":"C","text":"迁移学习"},{"letter":"D","text":"联邦学习"}],"answer":"B"},{"id":79,"type":"single","question":"上世纪六七十年代，为应对第一次人工智能研究低潮，英国著名科学家克里斯托弗-朗盖特-希金斯(Christopher Longute-Higgins)提出人工智能的发展可以从研究数学、语言、心理、生理等与人类思维和感知直接相关的科学领域入手，由此而产生了一门新的学科____。","options":[{"letter":"A","text":"认知神经科学"},{"letter":"B","text":"认知科学"},{"letter":"C","text":"行为学"},{"letter":"D","text":"认知心理学"}],"answer":"B"},{"id":80,"type":"single","question":"认为智能是通过感知与行为的交互体现的，更强调智能体对外界环境的自适应能力的学派是____学派。","options":[{"letter":"A","text":"符号主义"},{"letter":"B","text":"行为主义"},{"letter":"C","text":"连接主义"}],"answer":"B"},{"id":81,"type":"single","question":"机器学习最早由哪位科学家提出其经典定义？","options":[{"letter":"A","text":"汤姆·米切尔（TomMitchell）"},{"letter":"B","text":"亚瑟·塞缪尔（ArthurSamuel）"},{"letter":"C","text":"艾伦·图灵（AlanTuring）"},{"letter":"D","text":"杰弗里·辛顿（Geoffrey Hinton）"}],"answer":"B"},{"id":82,"type":"single","question":"根据汤姆·米切尔（TomMitchell）的形式化定义，机器学习的核心标准是？","options":[{"letter":"A","text":"模型必须使用神经网络"},{"letter":"B","text":"程序通过经验提升任务性能"},{"letter":"C","text":"必须处理高维复杂数据"},{"letter":"D","text":"需要人工标注所有训练样本"}],"answer":"B"},{"id":83,"type":"single","question":"以下哪种场景属于无监督学习的典型应用？","options":[{"letter":"A","text":"根据历史销售数据预测房价"},{"letter":"B","text":"对客户购买行为进行聚类分群"},{"letter":"C","text":"识别医学影像中的肿瘤区域"},{"letter":"D","text":"训练机器人通过试错学习行走"}],"answer":"B"},{"id":84,"type":"single","question":"关于机器学习与人工智能的关系，以下说法错误的是？","options":[{"letter":"A","text":"机器学习是实现人工智能的核心技术之一"},{"letter":"B","text":"深度学习是机器学习的子领域"},{"letter":"C","text":"强化学习与监督学习完全独立，无任何关联"},{"letter":"D","text":"机器学习模型可适应动态环境的变化"}],"answer":"C"},{"id":85,"type":"single","question":"以下哪一项是机器学习的核心要素之一？","options":[{"letter":"A","text":"用户界面设计"},{"letter":"B","text":"数据清洗工具"},{"letter":"C","text":"目标函数"},{"letter":"D","text":"编程语言选择"}],"answer":"C"},{"id":86,"type":"single","question":"均方误差（MSE）主要用于评估以下哪个要素的表现？","options":[{"letter":"A","text":"数据质量"},{"letter":"B","text":"模型复杂度"},{"letter":"C","text":"目标函数误差"},{"letter":"D","text":"优化算法效率"}],"answer":"C"},{"id":87,"type":"single","question":"当模型包含成千上万个参数时，为什么通常不直接求导找最优解？","options":[{"letter":"A","text":"目标函数不存在极小值"},{"letter":"B","text":"均方误差不适用于高维数据"},{"letter":"C","text":"计算复杂度过高或缺乏解析解"},{"letter":"D","text":"数据量不足以支持参数优化"}],"answer":"C"},{"id":88,"type":"single","question":"关于梯度下降算法的描述，哪一项错误？","options":[{"letter":"A","text":"沿梯度反方向调整参数以减小损失"},{"letter":"B","text":"适用于深度学习模型的参数优化"},{"letter":"C","text":"需计算目标函数对参数的偏导数"},{"letter":"D","text":"仅能用于线性模型的参数求解"}],"answer":"D"},{"id":89,"type":"single","question":"机器学习工作流程的第一步是？","options":[{"letter":"A","text":"模型训练"},{"letter":"B","text":"数据准备"},{"letter":"C","text":"模型部署"},{"letter":"D","text":"超参数调优"}],"answer":"B"},{"id":90,"type":"single","question":"验证集的主要作用是什么？","options":[{"letter":"A","text":"最终评估模型性能"},{"letter":"B","text":"调整模型超参数"},{"letter":"C","text":"增加训练数据量"},{"letter":"D","text":"替换测试集"}],"answer":"B"},{"id":91,"type":"single","question":"过拟合的典型表现是？","options":[{"letter":"A","text":"训练集和测试集误差均高"},{"letter":"B","text":"训练集误差低，测试集误差高"},{"letter":"C","text":"训练集误差高，测试集误差低"},{"letter":"D","text":"训练集和测试集误差均低"}],"answer":"B"},{"id":92,"type":"single","question":"以下哪种情况会因数据分布不一致导致模型失效？","options":[{"letter":"A","text":"训练集与测试集均包含猫的正面和侧面图像"},{"letter":"B","text":"训练集仅含白天照片，测试集仅含夜间照片"},{"letter":"C","text":"训练集和测试集均经过相同归一化处理"},{"letter":"D","text":"所有数据集均来自同一医疗影像设备"}],"answer":"B"},{"id":93,"type":"single","question":"当一个机器学习模型在训练集和测试集上的误差都非常高时，说明模型可能处于“欠拟合”状态。以下哪种策略通常不能有效缓解该问题？","options":[{"letter":"A","text":"增加模型的复杂度（如增加神经网络的层数或节点数）"},{"letter":"B","text":"减小正则化系数（如降低 L2 正则化的权重）"},{"letter":"C","text":"采用提前停止（Early Stopping）机制终止训练"},{"letter":"D","text":"进行特征工程，挖掘并添加更多与任务相关的特征"}],"answer":"C"},{"id":94,"type":"single","question":"模型部署后需定期重新训练的主要原因是什么？","options":[{"letter":"A","text":"确保模型在训练集上达到100%准确率"},{"letter":"B","text":"适应数据分布随时间推移发生的变化"},{"letter":"C","text":"验证集已完全替代测试集的功能"},{"letter":"D","text":"减少模型推理时的计算资源消耗"}],"answer":"B"},{"id":95,"type":"single","question":"以下哪种任务属于监督学习的典型应用？","options":[{"letter":"A","text":"根据用户购买行为进行客户聚类分群"},{"letter":"B","text":"根据已有标注数据训练气温预测模型"},{"letter":"C","text":"对新闻评论进行情感极性聚类"},{"letter":"D","text":"对于已有数据进行降维处理"}],"answer":"B"},{"id":96,"type":"single","question":"弱监督学习最可能用于以下哪种场景？","options":[{"letter":"A","text":"拥有10万张精确标注的医学影像"},{"letter":"B","text":"只有图片是否包含动物的二值标签"},{"letter":"C","text":"所有数据均通过传感器自动生成标签"},{"letter":"D","text":"需要实时与虚拟环境交互的机器人"}],"answer":"B"},{"id":97,"type":"single","question":"监督学习与非监督学习的根本区别在于？","options":[{"letter":"A","text":"是否使用神经网络结构"},{"letter":"B","text":"是否需要定义目标函数"},{"letter":"C","text":"是否依赖标注数据训练"},{"letter":"D","text":"是否处理高维数据特征"}],"answer":"C"},{"id":98,"type":"single","question":"“回归”一词的提出与以下哪位科学家直接相关？","options":[{"letter":"A","text":"亚瑟·塞缪尔（Arthur Samuel）"},{"letter":"B","text":"弗朗西斯·高尔顿（Francis Galton）"},{"letter":"C","text":"汤姆·米切尔（TomMitchell）"},{"letter":"D","text":"杰弗里·辛顿（Geoffrey Hinton）"}],"answer":"B"},{"id":99,"type":"single","question":"批量梯度下降（BGD）与随机梯度下降（SGD）的核心区别是？","options":[{"letter":"A","text":"BGD 使用全部样本更新参数，SGD使用单个样本"},{"letter":"B","text":"BGD需要计算偏导数，SGD直接随机调整参数"},{"letter":"C","text":"BGD仅用于线性回归，SGD适用于所有模型"},{"letter":"D","text":"BGD 必须设置学习率，SGD无需学习率"}],"answer":"A"},{"id":100,"type":"single","question":"逻辑回归主要用于解决以下哪种任务？","options":[{"letter":"A","text":"回归分析"},{"letter":"B","text":"二分类"},{"letter":"C","text":"多分类"},{"letter":"D","text":"聚类"}],"answer":"B"},{"id":101,"type":"single","question":"在逻辑回归中，Sigmoid 函数的主要作用是什么？","options":[{"letter":"A","text":"计算特征权重"},{"letter":"B","text":"将线性输出转换为概率值"},{"letter":"C","text":"定义损失函数"},{"letter":"D","text":"优化学习率"}],"answer":"B"},{"id":102,"type":"single","question":"K均值算法的正确步骤顺序是？","options":[{"letter":"A","text":"分配样本 → 初始化中心 → 更新中心 → 迭代"},{"letter":"B","text":"初始化中心 → 更新中心 → 分配样本 → 迭代"},{"letter":"C","text":"初始化中心 → 分配样本 → 更新中心 → 迭代"},{"letter":"D","text":"分配样本 → 更新中心 → 初始化中心 → 迭代"}],"answer":"C"},{"id":103,"type":"single","question":"K均值算法的目标是最小化以下哪项？","options":[{"letter":"A","text":"簇间距离之和"},{"letter":"B","text":"簇内距离平方和"},{"letter":"C","text":"全局方差"},{"letter":"D","text":"分类准确率"}],"answer":"B"},{"id":104,"type":"single","question":"经验误差反映的是模型在哪个数据集上的表现？","options":[{"letter":"A","text":"训练集"},{"letter":"B","text":"测试集"},{"letter":"C","text":"验证集"},{"letter":"D","text":"新采集的实时数据"}],"answer":"A"},{"id":105,"type":"single","question":"过拟合的模型最可能表现出以下哪种特征？","options":[{"letter":"A","text":"训练集误差高，测试集误差高"},{"letter":"B","text":"训练集误差低，测试集误差高"},{"letter":"C","text":"训练集误差高，测试集误差低"},{"letter":"D","text":"训练集误差低，测试集误差低"}],"answer":"B"},{"id":106,"type":"single","question":"k折交叉验证的核心优势是什么？","options":[{"letter":"A","text":"计算速度最快"},{"letter":"B","text":"减少数据划分的随机性影响"},{"letter":"C","text":"完全避免模型过拟合"},{"letter":"D","text":"适用于超大数据集"}],"answer":"B"},{"id":107,"type":"single","question":"关于留出法与交叉验证的对比，以下描述错误的是？","options":[{"letter":"A","text":"留出法的数据利用率低于交叉验证"},{"letter":"B","text":"交叉验证的稳定性通常高于留出法"},{"letter":"C","text":"留出法更适合需要快速验证的大数据集"},{"letter":"D","text":"交叉验证通过单次划分即可完成评估"}],"answer":"D"},{"id":108,"type":"single","question":"在机器学习模型评估中，混淆矩阵中的“False Negative（FN）”表示什么？","options":[{"letter":"A","text":"模型正确预测为正类的样本数"},{"letter":"B","text":"模型正确预测为负类的样本数"},{"letter":"C","text":"模型将负类错误预测为正类的样本数"},{"letter":"D","text":"模型将正类错误预测为负类的样本数"}],"answer":"D"},{"id":109,"type":"single","question":"在医疗癌症筛查任务中，优先保证高召回率的目的是？","options":[{"letter":"A","text":"减少健康人被误诊为癌症的概率"},{"letter":"B","text":"避免漏诊真正的癌症患者"},{"letter":"C","text":"降低检测设备的成本"},{"letter":"D","text":"提高诊断报告的书写效率"}],"answer":"B"},{"id":110,"type":"single","question":"关于F1分数的描述，以下哪项错误？","options":[{"letter":"A","text":"是精确率和召回率的调和平均数"},{"letter":"B","text":"取值范围在0到1之间"},{"letter":"C","text":"当精确率与召回率相等时，F1分数等于它们"},{"letter":"D","text":"对类别分布不平衡的数据集无参考价值"}],"answer":"D"},{"id":111,"type":"single","question":"奥卡姆剃刀原则在机器学习中的核心建议是？","options":[{"letter":"A","text":"选择预测准确率最高的模型"},{"letter":"B","text":"在满足需求时优先选择更简单的模型"},{"letter":"C","text":"始终使用深度学习模型以应对复杂任务"},{"letter":"D","text":"根据硬件成本选择计算资源消耗低的模型"}],"answer":"B"},{"id":112,"type":"single","question":"以下哪种方法不能直接用于缓解过拟合？","options":[{"letter":"A","text":"增加训练数据量"},{"letter":"B","text":"为模型添加L2 正则化项"},{"letter":"C","text":"使用交叉验证评估模型"},{"letter":"D","text":"采用更复杂的神经网络结构"}],"answer":"D"},{"id":113,"type":"single","question":"选择机器学习模型时，应考虑的主要因素不包括？","options":[{"letter":"A","text":"任务类型（如分类或回归）"},{"letter":"B","text":"数据噪声水平与标签质量"},{"letter":"C","text":"模型训练所需的编程语言"},{"letter":"D","text":"任务对精确率或召回率的侧重"}],"answer":"C"},{"id":114,"type":"single","question":"关于L2 正则化的作用，以下描述正确的是？","options":[{"letter":"A","text":"通过增大模型参数绝对值来提升拟合能力"},{"letter":"B","text":"通过限制参数大小来降低模型复杂度"},{"letter":"C","text":"直接删除不重要的特征以简化模型"},{"letter":"D","text":"仅适用于线性回归任务"}],"answer":"B"},{"id":115,"type":"single","question":"对于简单数据集线性可分的二分类任务，以下哪种模型最符合奥卡姆剃刀原则？","options":[{"letter":"A","text":"深度神经网络（100层）"},{"letter":"B","text":"线性分类器"},{"letter":"C","text":"复杂非线性分类器"},{"letter":"D","text":"卷积神经网络（ResNet 架构）"}],"answer":"B"},{"id":116,"type":"single","question":"机器学习的核心目标是让模型具备什么能力？","options":[{"letter":"A","text":"在训练数据上达到100%准确率"},{"letter":"B","text":"对未知数据做出准确预测（泛化能力）"},{"letter":"C","text":"快速处理高维度数据"},{"letter":"D","text":"完全复现人类的学习过程"}],"answer":"B"},{"id":117,"type":"single","question":"机器学习中强调“训练集、验证集、测试集数据分布一致”主要是为了？","options":[{"letter":"A","text":"降低数据存储成本"},{"letter":"B","text":"确保模型学到可泛化的规律"},{"letter":"C","text":"简化模型训练流程"},{"letter":"D","text":"提高算法计算速度"}],"answer":"B"},{"id":118,"type":"single","question":"以下哪项是机器学习与传统编程的主要区别？","options":[{"letter":"A","text":"机器学习必须使用Python 语言"},{"letter":"B","text":"机器学习通过数据自动生成规则，而非人工编写规则"},{"letter":"C","text":"机器学习不需要任何数学知识"},{"letter":"D","text":"传统编程无法处理结构化数据"}],"answer":"B"},{"id":119,"type":"single","question":"以下哪种描述最能概括“监督学习”的特点？","options":[{"letter":"A","text":"通过试错与环境交互学习"},{"letter":"B","text":"从无标签数据中发现隐藏模式"},{"letter":"C","text":"根据已知答案调整预测规则"},{"letter":"D","text":"仅用于处理图像和语音数据"}],"answer":"C"},{"id":120,"type":"single","question":"为什么说“数据是机器学习的基础”？","options":[{"letter":"A","text":"数据量越大模型准确率必然越高"},{"letter":"B","text":"模型通过分析数据规律而非预设规则学习"},{"letter":"C","text":"所有数据必须由人工手动标注"},{"letter":"D","text":"数据决定了计算机硬件的选择"}],"answer":"B"},{"id":121,"type":"single","question":"模型“泛化能力”差通常意味着？","options":[{"letter":"A","text":"训练速度过慢"},{"letter":"B","text":"在新数据上预测效果不佳"},{"letter":"C","text":"无法处理高维度特征"},{"letter":"D","text":"需要更多计算内存"}],"answer":"B"},{"id":122,"type":"single","question":"在医疗诊断任务中使用机器学习模型时，以下哪项是最需要关注的伦理问题？","options":[{"letter":"A","text":"模型是否采用最新深度学习算法"},{"letter":"B","text":"预测结果的可解释性与错误风险"},{"letter":"C","text":"训练数据是否包含足够多的类别标签"},{"letter":"D","text":"模型能否在GPU上加速运算"}],"answer":"B"},{"id":123,"type":"single","question":"若线性回归的均方误差函数对参数w的偏导数为正，应如何调整w？","options":[{"letter":"A","text":"增大w以减小误差"},{"letter":"B","text":"减小w以减小误差"},{"letter":"C","text":"保持w不变"},{"letter":"D","text":"随机改变w方向"}],"answer":"B"},{"id":124,"type":"single","question":"深度学习的核心思想是模拟以下哪种结构？","options":[{"letter":"A","text":"量子计算机"},{"letter":"B","text":"大脑神经网络"},{"letter":"C","text":"传统数据库"},{"letter":"D","text":"遗传算法"}],"answer":"B"},{"id":125,"type":"single","question":"人工神经网络的训练本质是调整什么？","options":[{"letter":"A","text":"输入数据"},{"letter":"B","text":"激活函数类型"},{"letter":"C","text":"神经元连接权重"},{"letter":"D","text":"网络层数"}],"answer":"C"},{"id":126,"type":"single","question":"下列哪项是人工神经网络与生物神经网络的共同点？","options":[{"letter":"A","text":"依赖电子信号传递"},{"letter":"B","text":"神经元连接强度可调"},{"letter":"C","text":"完全模拟大脑结构"},{"letter":"D","text":"无需学习过程"}],"answer":"B"},{"id":127,"type":"single","question":"单层感知机无法解决以下哪种问题？","options":[{"letter":"A","text":"与门（AND）"},{"letter":"B","text":"或门（OR）"},{"letter":"C","text":"异或门（XOR）"},{"letter":"D","text":"非门（NOT）"}],"answer":"C"},{"id":128,"type":"single","question":"单层感知机可以实现的分类任务是？","options":[{"letter":"A","text":"线性可分问题"},{"letter":"B","text":"非线性可分问题"},{"letter":"C","text":"图像生成"},{"letter":"D","text":"语音识别"}],"answer":"A"},{"id":129,"type":"single","question":"下列哪项是多层感知机解决异或（XOR）问题的关键？","options":[{"letter":"A","text":"增加输入维度"},{"letter":"B","text":"引入隐藏层"},{"letter":"C","text":"使用阶跃函数"},{"letter":"D","text":"减少训练数据"}],"answer":"B"},{"id":130,"type":"single","question":"以下哪项是BP 算法的局限性？","options":[{"letter":"A","text":"只能处理线性问题"},{"letter":"B","text":"梯度消失问题"},{"letter":"C","text":"不需要训练数据"},{"letter":"D","text":"只能用于单层网络"}],"answer":"B"},{"id":131,"type":"single","question":"反向传播（BP）算法的核心思想基于什么数学原理？","options":[{"letter":"A","text":"傅里叶变换"},{"letter":"B","text":"链式法则"},{"letter":"C","text":"欧拉定理"},{"letter":"D","text":"拉格朗日乘数"}],"answer":"B"},{"id":132,"type":"single","question":"以下哪项不是传统神经网络的局限性？","options":[{"letter":"A","text":"过拟合"},{"letter":"B","text":"计算复杂度低"},{"letter":"C","text":"局部极值问题"},{"letter":"D","text":"梯度消失"}],"answer":"B"},{"id":133,"type":"single","question":"以下哪项是BP 算法更新权重的依据？","options":[{"letter":"A","text":"输入数据分布"},{"letter":"B","text":"误差梯度"},{"letter":"C","text":"网络层数"},{"letter":"D","text":"激活函数类型"}],"answer":"B"},{"id":134,"type":"single","question":"下列哪项属于BP 算法的计算缺点？","options":[{"letter":"A","text":"训练速度极快"},{"letter":"B","text":"参数数量随网络规模大幅/平方级增长"},{"letter":"C","text":"仅需单次迭代"},{"letter":"D","text":"无过拟合风险"}],"answer":"B"},{"id":135,"type":"single","question":"当MP模型采用阈值（阶跃）函数作为激活函数时，神经元可以看作是什么？","options":[{"letter":"A","text":"非线性分类器"},{"letter":"B","text":"线性回归模型"},{"letter":"C","text":"线性分类器"},{"letter":"D","text":"聚类模型"}],"answer":"C"},{"id":136,"type":"single","question":"通用/万能近似定理表明神经网络可以用来逼近什么函数？（ ）","options":[{"letter":"A","text":"任意函数"},{"letter":"B","text":"任意连续函数"},{"letter":"C","text":"线性函数"},{"letter":"D","text":"非线性函数"}],"answer":"B"},{"id":137,"type":"single","question":"BP 算法的核心思想是在什么学习基础上进行多层扩展？（ ）","options":[{"letter":"A","text":"Hebb 学习"},{"letter":"B","text":"δ学习"},{"letter":"C","text":"强化学习"},{"letter":"D","text":"无监督学习"}],"answer":"B"},{"id":138,"type":"single","question":"BP 算法中，通过什么法则计算误差函数对每一层权重的梯度？（ ）","options":[{"letter":"A","text":"乘法法则"},{"letter":"B","text":"链式法则"},{"letter":"C","text":"加法法则"},{"letter":"D","text":"除法法则"}],"answer":"B"},{"id":139,"type":"single","question":"BP 算法的算法流程不包括以下哪一步？（ ）","options":[{"letter":"A","text":"正向传播预测输出"},{"letter":"B","text":"计算输出误差"},{"letter":"C","text":"Hebb法则更新权重"},{"letter":"D","text":"梯度下降算法更新权重"}],"answer":"C"},{"id":140,"type":"single","question":"BP 算法中，常用的误差计算方法是什么？（ ）","options":[{"letter":"A","text":"绝对误差"},{"letter":"B","text":"均方误差"},{"letter":"C","text":"交叉熵误差"},{"letter":"D","text":"对数误差"}],"answer":"B"},{"id":141,"type":"single","question":"当神经网络结构复杂且训练数据有限时，容易出现什么问题？（ ）","options":[{"letter":"A","text":"梯度消失"},{"letter":"B","text":"梯度爆炸"},{"letter":"C","text":"过拟合"},{"letter":"D","text":"欠拟合"}],"answer":"C"},{"id":142,"type":"single","question":"随着隐含层增加，反向传播传递给较低层的信息会减少，这会导致什么问题？（ ）","options":[{"letter":"A","text":"梯度消失"},{"letter":"B","text":"局部极值"},{"letter":"C","text":"计算复杂度降低"},{"letter":"D","text":"过拟合"}],"answer":"A"},{"id":143,"type":"single","question":"证明了多层神经网络可以通过反向传播算法有效训练，解决单层感知机局限性的是哪种算法？（ ）","options":[{"letter":"A","text":"Hebb 算法"},{"letter":"B","text":"δ算法"},{"letter":"C","text":"BP 算法"},{"letter":"D","text":"梯度下降算法"}],"answer":"C"},{"id":144,"type":"single","question":"卷积神经网络（CNN）在处理图像数据时，相较于全连接感知器网络的主要优势是什么？","options":[{"letter":"A","text":"参数数量更多"},{"letter":"B","text":"计算复杂度更高"},{"letter":"C","text":"局部连接和参数共享减少参数量"},{"letter":"D","text":"只能处理线性可分问题"}],"answer":"C"},{"id":145,"type":"single","question":"生物视觉系统中的“简单细胞”对什么信息敏感？","options":[{"letter":"A","text":"颜色变化"},{"letter":"B","text":"运动轨迹"},{"letter":"C","text":"复杂纹理"},{"letter":"D","text":"某一朝向的边缘信息"}],"answer":"D"},{"id":146,"type":"single","question":"现代卷积神经网络的真正开端是以下哪个模型？","options":[{"letter":"A","text":"AlexNet"},{"letter":"B","text":"LeNet-5"},{"letter":"C","text":"ResNet"},{"letter":"D","text":"Transformer"}],"answer":"B"},{"id":147,"type":"single","question":"卷积神经网络中，池化层的主要作用是什么？","options":[{"letter":"A","text":"增加特征图的维度"},{"letter":"B","text":"引入非线性激活函数"},{"letter":"C","text":"降低特征图的空间维度并保留重要信息"},{"letter":"D","text":"直接生成分类结果"}],"answer":"C"},{"id":148,"type":"single","question":"ResNet 的核心创新是引入了什么结构来解决梯度消失问题？","options":[{"letter":"A","text":"跳跃连接（SkipConnections）"},{"letter":"B","text":"池化层"},{"letter":"C","text":"全连接层"},{"letter":"D","text":"更大的卷积核"}],"answer":"A"},{"id":149,"type":"single","question":"以下哪项是CNN的局限性？","options":[{"letter":"A","text":"无法处理图像数据"},{"letter":"B","text":"难以有效捕捉时间序列中的长期依赖关系"},{"letter":"C","text":"参数量过少"},{"letter":"D","text":"只能用于自然语言处理"}],"answer":"B"},{"id":150,"type":"single","question":"循环神经网络（RNN）的核心特点是什么？","options":[{"letter":"A","text":"独立处理每个输入"},{"letter":"B","text":"通过循环结构捕捉序列数据的时间依赖性"},{"letter":"C","text":"仅用于图像分类"},{"letter":"D","text":"无需激活函数"}],"answer":"B"},{"id":151,"type":"single","question":"LSTM 中“遗忘门”的作用是什么？","options":[{"letter":"A","text":"决定丢弃多少先前的信息"},{"letter":"B","text":"生成输出结果"},{"letter":"C","text":"增加新信息到细胞状态"},{"letter":"D","text":"计算注意力权重"}],"answer":"A"},{"id":152,"type":"single","question":"Transformer 模型的核心机制是什么？","options":[{"letter":"A","text":"卷积操作"},{"letter":"B","text":"池化操作"},{"letter":"C","text":"全连接层"},{"letter":"D","text":"自注意力机制"}],"answer":"D"},{"id":153,"type":"single","question":"Transformer 中“位置编码”的作用是什么？","options":[{"letter":"A","text":"引入非线性激活函数"},{"letter":"B","text":"为序列元素添加位置信息"},{"letter":"C","text":"减少参数量"},{"letter":"D","text":"直接生成输出结果"}],"answer":"B"},{"id":154,"type":"single","question":"BERT 模型的核心特点是什么？","options":[{"letter":"A","text":"使用单向Transformer 编码器"},{"letter":"B","text":"仅用于图像分类"},{"letter":"C","text":"通过双向Transformer编码器学习文本表示"},{"letter":"D","text":"无需预训练"}],"answer":"C"},{"id":155,"type":"single","question":"Vision Transformer（ViT）如何将图像输入到Transformer 中？","options":[{"letter":"A","text":"直接输入像素值"},{"letter":"B","text":"将图像分割为固定大小的补丁并视为序列"},{"letter":"C","text":"仅提取边缘信息"},{"letter":"D","text":"使用池化层压缩图像"}],"answer":"B"},{"id":156,"type":"single","question":"GPT 系列模型的主要生成方式是什么？","options":[{"letter":"A","text":"自回归方式预测下一个词"},{"letter":"B","text":"双向编码输入序列"},{"letter":"C","text":"仅用于图像生成"},{"letter":"D","text":"无需预训练"}],"answer":"A"},{"id":157,"type":"single","question":"以下哪项是PyTorch 的主要特点？","options":[{"letter":"A","text":"仅支持静态计算图"},{"letter":"B","text":"动态计算图机制便于快速原型设计"},{"letter":"C","text":"仅用于自然语言处理"},{"letter":"D","text":"不支持GPU加速"}],"answer":"B"},{"id":158,"type":"single","question":"TensorFlow的TensorBoard 主要用于什么？","options":[{"letter":"A","text":"可视化训练过程和模型结构"},{"letter":"B","text":"生成图像数据"},{"letter":"C","text":"替代卷积操作"},{"letter":"D","text":"仅用于模型部署"}],"answer":"A"},{"id":159,"type":"single","question":"飞桨（PaddlePaddle）是哪家公司开发的深度学习框架？","options":[{"letter":"A","text":"谷歌"},{"letter":"B","text":"Facebook"},{"letter":"C","text":"百度"},{"letter":"D","text":"华为"}],"answer":"C"},{"id":160,"type":"single","question":"以下哪项是CNN中“卷积层”的作用？","options":[{"letter":"A","text":"直接输出分类结果"},{"letter":"B","text":"从输入数据中提取局部特征"},{"letter":"C","text":"仅用于降维"},{"letter":"D","text":"生成随机噪声"}],"answer":"B"},{"id":161,"type":"single","question":"在Transformer 的解码器中，“编码器-解码器注意力层”的作用是什么？","options":[{"letter":"A","text":"防止未来位置信息流入当前位置"},{"letter":"B","text":"允许解码器关注编码器的输出"},{"letter":"C","text":"直接生成图像数据"},{"letter":"D","text":"仅用于池化操作"}],"answer":"B"},{"id":162,"type":"bool","question":"现代人工神经网络的设计主要仿生____。","options":[{"letter":"A","text":"生物神经元与突触结构"},{"letter":"B","text":"大脑血液流动机制"},{"letter":"C","text":"大脑记忆分区"},{"letter":"D","text":"视觉皮层单一细胞"}],"answer":"A"},{"id":163,"type":"bool","question":"下列不属于 MP 神经元模型构成要素的是____。","options":[{"letter":"A","text":"输入权重"},{"letter":"B","text":"阈值"},{"letter":"C","text":"激活函数"},{"letter":"D","text":"池化核"}],"answer":"D"},{"id":164,"type":"bool","question":"单层感知机无法解决以下哪种经典问题____。","options":[{"letter":"A","text":"与门"},{"letter":"B","text":"或门"},{"letter":"C","text":"异或门"},{"letter":"D","text":"非门"}],"answer":"C"},{"id":165,"type":"bool","question":"神经网络第一次研究低潮始于哪一事件之后____。","options":[{"letter":"A","text":"达特茅斯会议"},{"letter":"B","text":"感知机局限性被指出"},{"letter":"C","text":"BP 算法提出"},{"letter":"D","text":"AlexNet 问世"}],"answer":"B"},{"id":166,"type":"bool","question":"开启深度学习大规模应用浪潮的模型是____。","options":[{"letter":"A","text":"LeNet-5"},{"letter":"B","text":"AlexNet"},{"letter":"C","text":"VGG"},{"letter":"D","text":"ResNet"}],"answer":"B"},{"id":167,"type":"bool","question":"BP 算法的中文全称是____。","options":[{"letter":"A","text":"正向传播算法"},{"letter":"B","text":"反向传播算法"},{"letter":"C","text":"梯度迭代算法"},{"letter":"D","text":"聚类优化算法"}],"answer":"B"},{"id":168,"type":"bool","question":"BP 算法计算多层网络误差梯度依托的数学原理是____。","options":[{"letter":"A","text":"贝叶斯定理"},{"letter":"B","text":"链式法则"},{"letter":"C","text":"拉格朗日乘数法"},{"letter":"D","text":"大数定律"}],"answer":"B"},{"id":169,"type":"bool","question":"深层神经网络使用 BP 训练最易出现的问题是____。","options":[{"letter":"A","text":"欠拟合"},{"letter":"B","text":"梯度消失"},{"letter":"C","text":"样本不足"},{"letter":"D","text":"学习率过小"}],"answer":"B"},{"id":170,"type":"bool","question":"CNN 指的是哪类网络____。","options":[{"letter":"A","text":"循环神经网络"},{"letter":"B","text":"卷积神经网络"},{"letter":"C","text":"长短期记忆网络"},{"letter":"D","text":"变换器网络"}],"answer":"B"},{"id":171,"type":"bool","question":"下列不属于卷积神经网络核心特性的是____。","options":[{"letter":"A","text":"局部连接"},{"letter":"B","text":"权值共享"},{"letter":"C","text":"池化降维"},{"letter":"D","text":"全连接冗余参数"}],"answer":"D"},{"id":172,"type":"bool","question":"卷积神经网络中池化层的核心作用不包括____。","options":[{"letter":"A","text":"降低特征图维度"},{"letter":"B","text":"减少模型参数量"},{"letter":"C","text":"提升模型平移不变性"},{"letter":"D","text":"自动学习卷积核"}],"answer":"D"},{"id":173,"type":"bool","question":"下列哪种激活函数能有效缓解深层网络梯度消失问题____。","options":[{"letter":"A","text":"阶跃函数"},{"letter":"B","text":"Sigmoid"},{"letter":"C","text":"ReLU"},{"letter":"D","text":"线性激活函数"}],"answer":"C"},{"id":174,"type":"bool","question":"ResNet 解决深层网络退化与梯度问题的核心结构是____。","options":[{"letter":"A","text":"增大卷积核"},{"letter":"B","text":"跳跃连接（残差连接）"},{"letter":"C","text":"多层池化叠加"},{"letter":"D","text":"增大学习率"}],"answer":"B"},{"id":175,"type":"bool","question":"循环神经网络（RNN）最适合处理哪类数据____。","options":[{"letter":"A","text":"静态图像"},{"letter":"B","text":"时序序列数据"},{"letter":"C","text":"表格结构化数据"},{"letter":"D","text":"离散分类数据"}],"answer":"B"},{"id":176,"type":"bool","question":"为解决 RNN 长距离依赖缺陷衍生出的网络是____。","options":[{"letter":"A","text":"CNN"},{"letter":"B","text":"LSTM"},{"letter":"C","text":"LeNet"},{"letter":"D","text":"AlexNet"}],"answer":"B"},{"id":177,"type":"bool","question":"Transformer 模型最核心的创新机制是____。","options":[{"letter":"A","text":"卷积运算"},{"letter":"B","text":"自注意力机制"},{"letter":"C","text":"循环记忆结构"},{"letter":"D","text":"池化下采样"}],"answer":"B"},{"id":178,"type":"single","question":"Transformer 中位置编码的主要作用是____。","options":[{"letter":"A","text":"降低参数量"},{"letter":"B","text":"给序列添加位置时序信息"},{"letter":"C","text":"加速模型收敛"},{"letter":"D","text":"防止模型过拟合"}],"answer":"B"},{"id":179,"type":"bool","question":"在常用的主流深度学习工具与平台中，由百度公司开发、作为中国首个自主研发且功能丰富、开源开放的产业级深度学习平台是____。","options":[{"letter":"A","text":"飞桨（PaddlePaddle）"},{"letter":"B","text":"PyTorch"},{"letter":"C","text":"昇思（MindSpore）"},{"letter":"D","text":"TensorFlow"}],"answer":"A"},{"id":180,"type":"bool","question":"在常用的主流深度学习工具与平台中，华为推出的全场景 AI 深度学习框架是____。","options":[{"letter":"A","text":"MindSpore"},{"letter":"B","text":"PaddlePaddle"},{"letter":"C","text":"PyTorch"},{"letter":"D","text":"TensorFlow"}],"answer":"A"},{"id":181,"type":"bool","question":"1986年，Rumelhart、Hinton、Williams 等学者提出了一种能够有效训练多层感知机、解决单层感知机局限性的核心算法，即____算法。","options":[{"letter":"A","text":"Hebb 学习"},{"letter":"B","text":"反向传播（Backpropagation）"},{"letter":"C","text":"δ学习"},{"letter":"D","text":"Q学习"}],"answer":"B"},{"id":182,"type":"bool","question":"通用/万能近似定理（Universal ApproximationTheorem）表明，神经网络如果要用来逼近任意连续函数，并且达到任意给定的精度要求，至少需要具备____。","options":[{"letter":"A","text":"一个隐藏层"},{"letter":"B","text":"两个隐藏层"},{"letter":"C","text":"深层（5层以上）架构"},{"letter":"D","text":"三个隐藏层"}],"answer":"A"},{"id":183,"type":"bool","question":"1949年心理学家提出的Hebb 学习规则是早期重要的训练算法，由于缺乏明确的____，容易导致权重无限增长，使网络失去稳定性。","options":[{"letter":"A","text":"隐含层传播机制"},{"letter":"B","text":"误差修正机制"},{"letter":"C","text":"非线性激活函数"},{"letter":"D","text":"并行计算支持"}],"answer":"B"},{"id":184,"type":"single","question":"δ学习（delta规则，广义 Hebb）相比传统Hebb 学习做出的核心改进是____。 A. 引入了能量函数的概念，使网络能够自动寻优","options":[{"letter":"B","text":"将激活函数替换为了ReLU，避免了死神经元"},{"letter":"C","text":"通过链式法则完美计算了所有隐含层的误差梯度"},{"letter":"D","text":"引入了监督学习机制，通过误差信号来调整权重"}],"answer":"D"},{"id":185,"type":"bool","question":"随着隐含层增加，反向传播传递给较低层的信息会减少，对网络中权重的影响也会变小，这会导致____问题。","options":[{"letter":"A","text":"过拟合"},{"letter":"B","text":"梯度消失"},{"letter":"C","text":"计算复杂度降低"},{"letter":"D","text":"局部极值"}],"answer":"B"},{"id":186,"type":"bool","question":"1962年，Hubel和Wiesel发现猫的视觉皮层中包含简单细胞和复杂细胞。受此启发，日本科学家福岛邦彦在1980年设计了神经网络模型____，被认为是卷积神经网络的雏形。","options":[{"letter":"A","text":"Hopfield Network"},{"letter":"B","text":"“神经认知”系统 (Neocognitron)"},{"letter":"C","text":"AlexNet"},{"letter":"D","text":"LeNet-5"}],"answer":"B"},{"id":187,"type":"bool","question":"卷积神经网络（CNN）之所以能够完美替代全连接网络高效处理图像数据，主要特点不包括____。","options":[{"letter":"A","text":"局部连接与参数共享"},{"letter":"B","text":"池化降低数据量"},{"letter":"C","text":"端到端学习，自动提取特征"},{"letter":"D","text":"必须使用自回归范式预测下一个像素点"}],"answer":"D"},{"id":188,"type":"bool","question":"在卷积神经网络中，池化操作（Pooling）能够减少参数和计算量，防止过拟合，同时能使模型对尺度、平移、旋转变化具有一定的____。","options":[{"letter":"A","text":"非线性"},{"letter":"B","text":"不变性"},{"letter":"C","text":"稀疏性"},{"letter":"D","text":"并行性"}],"answer":"B"},{"id":189,"type":"bool","question":"CNN常用ReLU（线性整流激活函数）来取代传统的Sigmoid 函数。根据课件，下列哪项不属于ReLU 激活函数带来的显著优势____。","options":[{"letter":"A","text":"避免了梯度爆炸和梯度消失问题"},{"letter":"B","text":"简化计算过程，提高效率"},{"letter":"C","text":"训练稀疏网络，加速训练"},{"letter":"D","text":"彻底解决了死亡神经元问题"}],"answer":"D"},{"id":190,"type":"single","question":"CNN端到端学习的核心特征是____。","options":[{"letter":"A","text":"特征处理依赖人工设计特征，需领域专家经验"},{"letter":"B","text":"分多个阶段进行，特征提取和分类分开，效率较低"},{"letter":"C","text":"单一模型直接处理，自动学习特征，无需人工干预"},{"letter":"D","text":"对小数据友好，硬件需求仅需CPU即可处理"}],"answer":"C"},{"id":191,"type":"bool","question":"2015年，由微软亚洲研究院何恺明等人提出的深度残差网络（ResNet），其深度达到了破纪录的152层，其核心创新是引入了____结构来解决梯度消失问题。","options":[{"letter":"A","text":"自注意力机制"},{"letter":"B","text":"跳跃连接（SkipConnections）"},{"letter":"C","text":"遗忘门"},{"letter":"D","text":"池化层"}],"answer":"B"},{"id":192,"type":"bool","question":"课件在总结卷积神经网络（CNN）未考虑____，无法有效处理时序强相关的序列问题。","options":[{"letter":"A","text":"输入输出的一一对应性"},{"letter":"B","text":"输入之间的相关性假设"},{"letter":"C","text":"时序变化"},{"letter":"D","text":"空间局域特征"}],"answer":"C"},{"id":193,"type":"bool","question":"循环神经网络（RNN）的设计受到了大脑认知功能中“学习与记忆”的启发。根据课件，其基本思想是具备“记忆”能力，具体是通过____在时间维度上传递信息。","options":[{"letter":"A","text":"输入层的循环连接"},{"letter":"B","text":"隐藏状态（hidden state）"},{"letter":"C","text":"全连接层的短路连接"},{"letter":"D","text":"位置编码"}],"answer":"B"},{"id":194,"type":"bool","question":"传统循环神经网络（RNN）在处理长序列数据时，很难记住很久之前的输入信息。为了有效缓解模型训练中梯度消失和爆炸的问题，Hochreiter等人在1997年提出了____。","options":[{"letter":"A","text":"长短时记忆网络（LSTM）"},{"letter":"B","text":"门控递归单元（GRU）"},{"letter":"C","text":"VisionTransformer（ViT）"},{"letter":"D","text":"深度信念网络（DBN）"}],"answer":"A"},{"id":195,"type":"bool","question":"2017年，Google研究团队提出了Transformer。Transformer 模型的核心机制是____。","options":[{"letter":"A","text":"循环结构"},{"letter":"B","text":"池化操作"},{"letter":"C","text":"自注意力机制"},{"letter":"D","text":"卷积操作"}],"answer":"C"},{"id":196,"type":"bool","question":"自注意力机制利用注意力分数自适应关注上下文中的关键信息。为了在并行化的注意力机制中引入位置信息，Transformer 引入了____。","options":[{"letter":"A","text":"位置编码"},{"letter":"B","text":"能量函数"},{"letter":"C","text":"双向掩码"},{"letter":"D","text":"独热编码"}],"answer":"A"},{"id":197,"type":"single","question":"2020年，Dosovitskiy等人提出了视觉Transformer（ViT）。ViT 模型如何将图像输入到标准Transformer 中进行处理____。","options":[{"letter":"A","text":"直接输入一维像素值"},{"letter":"B","text":"将图像分割为固定大小的非重叠块（patches）并视为序列"},{"letter":"C","text":"利用最大池化层将全图压缩到单一坐标点"},{"letter":"D","text":"人工设计SIFT 和HOG 特征符后作为离散数据投喂"}],"answer":"B"},{"id":198,"type":"single","question":"在遥感图像分析中，计算机视觉主要用于：","options":[{"letter":"A","text":"实时视频流压缩"},{"letter":"B","text":"地表覆盖分类与灾害监测"},{"letter":"C","text":"语音指令识别"},{"letter":"D","text":"数据加密传输"}],"answer":"B"},{"id":199,"type":"single","question":"自动驾驶中，计算机视觉技术的核心功能是：","options":[{"letter":"A","text":"生成音乐推荐"},{"letter":"B","text":"实时检测行人、车辆及交通标志"},{"letter":"C","text":"优化电池续航"},{"letter":"D","text":"控制车内空调系统"}],"answer":"B"},{"id":200,"type":"single","question":"文字识别（OCR）技术的关键步骤是：","options":[{"letter":"A","text":"图像边缘检测与字符分割"},{"letter":"B","text":"语音转文字"},{"letter":"C","text":"视频帧率调整"},{"letter":"D","text":"数据压缩存储"}],"answer":"A"},{"id":201,"type":"single","question":"增强现实（AR）中，计算机视觉的核心作用是：","options":[{"letter":"A","text":"实时跟踪物体位置与姿态"},{"letter":"B","text":"生成3D模型动画"},{"letter":"C","text":"优化网络传输速度"},{"letter":"D","text":"加密用户数据"}],"answer":"A"},{"id":202,"type":"single","question":"遥感图像中检测非法采矿活动，最适合的计算机视觉任务是：","options":[{"letter":"A","text":"图像分类"},{"letter":"B","text":"目标检测"},{"letter":"C","text":"语义分割"},{"letter":"D","text":"实例分割"}],"answer":"B"},{"id":203,"type":"single","question":"自动驾驶中，多传感器融合主要解决：","options":[{"letter":"A","text":"计算功耗过高"},{"letter":"B","text":"单一传感器在恶劣天气下的局限性"},{"letter":"C","text":"用户界面设计"},{"letter":"D","text":"语音交互延迟"}],"answer":"B"},{"id":204,"type":"single","question":"医疗影像诊断中，AI模型的挑战不包括：","options":[{"letter":"A","text":"数据隐私与伦理问题"},{"letter":"B","text":"模型可解释性不足"},{"letter":"C","text":"影像分辨率过高"},{"letter":"D","text":"标注数据稀缺"}],"answer":"C"},{"id":205,"type":"single","question":"手写文字识别属于计算机视觉的哪类任务？","options":[{"letter":"A","text":"图像生成"},{"letter":"B","text":"光学字符识别（OCR）"},{"letter":"C","text":"视频摘要"},{"letter":"D","text":"图像去噪"}],"answer":"B"},{"id":206,"type":"single","question":"AR 导航中，计算机视觉需结合：","options":[{"letter":"A","text":"实时定位与地图构建（SLAM）"},{"letter":"B","text":"语音合成技术"},{"letter":"C","text":"区块链验证"},{"letter":"D","text":"数据库索引优化"}],"answer":"A"},{"id":207,"type":"single","question":"遥感图像中，语义分割技术可用于：","options":[{"letter":"A","text":"区分农田与森林区域"},{"letter":"B","text":"压缩图像存储空间"},{"letter":"C","text":"增强图像对比度"},{"letter":"D","text":"生成三维地形图"}],"answer":"A"},{"id":208,"type":"single","question":"在目标检测中，AP（Average Precision）主要用于衡量：","options":[{"letter":"A","text":"模型推理速度"},{"letter":"B","text":"模型对每个类别的检测精度"},{"letter":"C","text":"模型参数量"},{"letter":"D","text":"模型对背景的识别能力"}],"answer":"B"},{"id":209,"type":"multi","question":"以下哪些是R-CNN系列模型的组成部分？","options":[{"letter":"A","text":"区域提议"},{"letter":"B","text":"特征提取（CNN）"},{"letter":"C","text":"分类器（SVM）"},{"letter":"D","text":"生成对抗网络"}],"answer":["A","B","C"]},{"id":210,"type":"multi","question":"以下哪些是Vision Transformer（ViT）的特点？","options":[{"letter":"A","text":"将图像分割为固定大小的Patch"},{"letter":"B","text":"使用Transformer编码器"},{"letter":"C","text":"使用卷积核进行局部特征提取"},{"letter":"D","text":"支持全局感受野"}],"answer":["A","B","D"]},{"id":211,"type":"multi","question":"以下哪些是人脸识别系统中可能面临的挑战？","options":[{"letter":"A","text":"光照变化"},{"letter":"B","text":"姿态变化"},{"letter":"C","text":"年龄变化"},{"letter":"D","text":"图像分辨率过高"}],"answer":["A","B","C"]},{"id":212,"type":"multi","question":"以下哪些方法属于传统人脸检测与识别的局限性？","options":[{"letter":"A","text":"静态性强的特征设计"},{"letter":"B","text":"缺乏层次化语义表征"},{"letter":"C","text":"特征提取极度依赖人工经验/领域知识"},{"letter":"D","text":"计算速度过快"}],"answer":["A","B","C"]},{"id":213,"type":"single","question":"自动驾驶中，YOLO 算法的优势是：","options":[{"letter":"A","text":"单阶段检测，速度快"},{"letter":"B","text":"仅用于图像分类"},{"letter":"C","text":"依赖两阶段候选区域生成"},{"letter":"D","text":"仅处理静态图像"}],"answer":"A"},{"id":214,"type":"single","question":"医疗AI诊断系统中，数据增强的作用是：","options":[{"letter":"A","text":"减少训练数据需求并提升泛化性"},{"letter":"B","text":"加密患者隐私信息"},{"letter":"C","text":"加快模型推理速度"},{"letter":"D","text":"降低图像分辨率"}],"answer":"A"},{"id":215,"type":"single","question":"遥感图像中，使用卷积神经网络（CNN）主要优势是：","options":[{"letter":"A","text":"自动提取多层次空间特征"},{"letter":"B","text":"减少数据存储需求"},{"letter":"C","text":"加速图像传输"},{"letter":"D","text":"增强色彩饱和度"}],"answer":"A"},{"id":216,"type":"single","question":"自动驾驶中，车道线检测通常采用：","options":[{"letter":"A","text":"边缘检测"},{"letter":"B","text":"语音识别算法"},{"letter":"C","text":"随机森林分类"},{"letter":"D","text":"生成对抗网络（GAN）"}],"answer":"A"},{"id":217,"type":"single","question":"医疗影像AI辅助诊断的伦理问题主要是：","options":[{"letter":"A","text":"数据隐私与算法透明度"},{"letter":"B","text":"图像分辨率不足"},{"letter":"C","text":"硬件成本过高"},{"letter":"D","text":"医生操作复杂度"}],"answer":"A"},{"id":218,"type":"single","question":"以下哪项指标用于衡量预测区域与真实区域的重叠程度？","options":[{"letter":"A","text":"精确率"},{"letter":"B","text":"召回率"},{"letter":"C","text":"交并比（IoU）"},{"letter":"D","text":"F1Score"}],"answer":"C"},{"id":219,"type":"single","question":"卷积神经网络（CNN）中，池化层（Pooling）的主要作用是：","options":[{"letter":"A","text":"增加特征图的通道数"},{"letter":"B","text":"降低空间维度并增强平移不变性"},{"letter":"C","text":"直接输出分类结果"},{"letter":"D","text":"生成新的训练样本"}],"answer":"B"},{"id":220,"type":"single","question":"目标检测任务中，以下哪项是两阶段（Two-Stage）算法的代表？","options":[{"letter":"A","text":"YOLO"},{"letter":"B","text":"SSD"},{"letter":"C","text":"Faster R-CNN"},{"letter":"D","text":"RetinaNet"}],"answer":"C"},{"id":221,"type":"single","question":"以下哪种损失函数常用于二分类任务？","options":[{"letter":"A","text":"均方误差（MSE）"},{"letter":"B","text":"交叉熵损失（Cross-Entropy）"},{"letter":"C","text":"余弦相似度损失"},{"letter":"D","text":"对比损失（ContrastiveLoss）"}],"answer":"B"},{"id":222,"type":"single","question":"在图像预处理中，归一化（Normalization）的主要目的是：","options":[{"letter":"A","text":"统一像素值范围，加速模型收敛"},{"letter":"B","text":"增加图像分辨率"},{"letter":"C","text":"生成对抗样本"},{"letter":"D","text":"减少图像存储空间"}],"answer":"A"},{"id":223,"type":"single","question":"传统图像特征描述符（如 SIFT、HOG）与深度学习特征相比，主要劣势是：","options":[{"letter":"A","text":"依赖手工设计，泛化能力弱"},{"letter":"B","text":"计算速度更快"},{"letter":"C","text":"对旋转不变性更好"},{"letter":"D","text":"适合小数据集"}],"answer":"A"},{"id":224,"type":"single","question":"实时视频处理中，计算机视觉系统通常需要优先优化：","options":[{"letter":"A","text":"算法计算效率"},{"letter":"B","text":"模型参数量"},{"letter":"C","text":"训练数据量"},{"letter":"D","text":"图像色彩饱和度"}],"answer":"A"},{"id":225,"type":"single","question":"以下哪种模型首次将Transformer 引入计算机视觉领域？","options":[{"letter":"A","text":"ResNet"},{"letter":"B","text":"VisionTransformer（ViT）"},{"letter":"C","text":"YOLOv4"},{"letter":"D","text":"U-Net"}],"answer":"B"},{"id":226,"type":"single","question":"YOLO（You Only Look Once）的核心思想是：","options":[{"letter":"A","text":"将图像划分为网格，每个网格预测多个边界框，将目标检测转化为单次回归问题"},{"letter":"B","text":"首先生成候选区域，而后进行分类与回归"},{"letter":"C","text":"仅支持单类别检测"},{"letter":"D","text":"依赖两阶段检测流程"}],"answer":"A"},{"id":227,"type":"single","question":"R-CNN（Region-based Convolutional Neural Networks）的第一步操作通常是：","options":[{"letter":"A","text":"使用SelectiveSearch 生成候选区域"},{"letter":"B","text":"训练区域建议网络（RPN）"},{"letter":"C","text":"对全图进行卷积特征提取"},{"letter":"D","text":"直接回归边界框坐标"}],"answer":"A"},{"id":228,"type":"single","question":"Fast R-CNN相比R-CNN 的主要改进是：","options":[{"letter":"A","text":"引入ROIPooling共享卷积特征"},{"letter":"B","text":"使用RPN生成候选区域"},{"letter":"C","text":"增加掩码预测分支"},{"letter":"D","text":"改用单阶段检测流程"}],"answer":"A"},{"id":229,"type":"single","question":"FasterR-CNN的核心创新是：","options":[{"letter":"A","text":"用RPN（Region Proposal Network）替代Selective Search"},{"letter":"B","text":"引入多任务损失函数"},{"letter":"C","text":"支持实例分割"},{"letter":"D","text":"提高检测速度至实时"}],"answer":"A"},{"id":230,"type":"single","question":"YOLO 与Faster R-CNN的主要区别是：","options":[{"letter":"A","text":"YOLO 是单阶段检测，Faster R-CNN 是两阶段"},{"letter":"B","text":"YOLO 依赖候选区域生成"},{"letter":"C","text":"Faster R-CNN不支持多类别检测"},{"letter":"D","text":"YOLO 仅用于图像分割"}],"answer":"A"},{"id":231,"type":"single","question":"机器视觉的核心任务是什么？","options":[{"letter":"A","text":"图像艺术创作"},{"letter":"B","text":"感知物体几何信息（位置/姿态）"},{"letter":"C","text":"音频信号处理"},{"letter":"D","text":"文本语义分析"}],"answer":"B"},{"id":232,"type":"single","question":"推动计算机视觉发展的关键人工智能技术是？","options":[{"letter":"A","text":"专家系统"},{"letter":"B","text":"卷积神经网络（CNN）"},{"letter":"C","text":"决策树"},{"letter":"D","text":"聚类算法"}],"answer":"B"},{"id":233,"type":"single","question":"Haar-AdaBoost 人脸检测的核心步骤不包括？","options":[{"letter":"A","text":"计算归一化特征值"},{"letter":"B","text":"使用SVM直接分类"},{"letter":"C","text":"级联检测器优化"},{"letter":"D","text":"提取Haar 特征模板"}],"answer":"B"},{"id":234,"type":"single","question":"在人脸检测中，Haar 特征不包括以下哪一类？","options":[{"letter":"A","text":"边缘特征"},{"letter":"B","text":"线性特征"},{"letter":"C","text":"颜色直方图特征"},{"letter":"D","text":"中心特征"}],"answer":"C"},{"id":235,"type":"single","question":"遥感图像识别应用不包括？","options":[{"letter":"A","text":"港口舰船识别"},{"letter":"B","text":"风力发电识别"},{"letter":"C","text":"人脸实名认证"},{"letter":"D","text":"农作物病虫害检测"}],"answer":"C"},{"id":236,"type":"single","question":"YOLO（You Only Look Once）的核心特点是？","options":[{"letter":"A","text":"两阶段检测（先候选框再分类）"},{"letter":"B","text":"将目标检测转为单次回归问题"},{"letter":"C","text":"仅处理静态图像"},{"letter":"D","text":"依赖手工特征"}],"answer":"B"},{"id":237,"type":"single","question":"YOLO 的缺点主要是：","options":[{"letter":"A","text":"对小目标和密集目标检测效果较差"},{"letter":"B","text":"无法实时推理"},{"letter":"C","text":"仅支持两阶段检测"},{"letter":"D","text":"依赖手动设计候选区域"}],"answer":"A"},{"id":238,"type":"single","question":"卷积神经网络（CNN）对计算机视觉的主要贡献是？","options":[{"letter":"A","text":"降低硬件成本"},{"letter":"B","text":"自动学习图像特征"},{"letter":"C","text":"加速数据传输"},{"letter":"D","text":"简化用户交互"}],"answer":"B"},{"id":239,"type":"single","question":"Mask R-CNN可以同时完成的任务是：","options":[{"letter":"A","text":"目标检测和实例分割"},{"letter":"B","text":"仅目标分类"},{"letter":"C","text":"图像超分辨率"},{"letter":"D","text":"视频动作识别"}],"answer":"A"},{"id":240,"type":"single","question":"语言在机器中的哪一种表示有利于进行语义相似性的计算？","options":[{"letter":"A","text":"独热编码；"},{"letter":"B","text":"ASCII 码；"},{"letter":"C","text":"UTF-8 编码；"},{"letter":"D","text":"词向量"}],"answer":"D"},{"id":241,"type":"single","question":"机器在建模语言问题用什么方法处理不确定性预测？","options":[{"letter":"A","text":"对输出进行概率建模；"},{"letter":"B","text":"使用神经网络；"},{"letter":"C","text":"梯度优化方法；"},{"letter":"D","text":"学习函数关系"}],"answer":"A"},{"id":242,"type":"single","question":"语言模型的核心目标是什么？","options":[{"letter":"A","text":"生成随机文本；"},{"letter":"B","text":"预测一段文本的概率分布;"},{"letter":"C","text":"识别图像中的文字;"},{"letter":"D","text":"翻译不同语言"}],"answer":"B"},{"id":243,"type":"single","question":"是一类预测模型，它假设当前时间点的输出仅依赖于之前的输出。","options":[{"letter":"A","text":"神经网络;"},{"letter":"B","text":"回归模型;"},{"letter":"C","text":"自回归语言模型;"},{"letter":"D","text":"分类模型"}],"answer":"C"},{"id":244,"type":"single","question":"目前研究表明大模型的参数数量与效果之间的关系符合 。","options":[{"letter":"A","text":"大数定律"},{"letter":"B","text":"尺度定律 （ScalingLaw）"},{"letter":"C","text":"中心极限定理"},{"letter":"D","text":"万能近似定理"}],"answer":"B"},{"id":245,"type":"single","question":"以下哪种情况最可能导致模型产生幻觉？","options":[{"letter":"A","text":"训练数据中包含大量噪声或错误信息"},{"letter":"B","text":"模型参数量过小"},{"letter":"C","text":"用户输入过于简短"},{"letter":"D","text":"使用过高的温度（Temperature）参数"}],"answer":"A"},{"id":246,"type":"single","question":"以下哪种方法被广泛用于缓解模型幻觉问题？","options":[{"letter":"A","text":"提高模型的推理速度"},{"letter":"B","text":"增加模型层数"},{"letter":"C","text":"引入外部知识库进行事实性验证"},{"letter":"D","text":"减少训练数据规模"}],"answer":"C"},{"id":247,"type":"single","question":"幻觉问题在以下哪个任务中影响最严重？","options":[{"letter":"A","text":"情感分析"},{"letter":"B","text":"机器翻译"},{"letter":"C","text":"医疗诊断建议生成"},{"letter":"D","text":"文本摘要"}],"answer":"C"},{"id":248,"type":"single","question":"哪种模型架构设计能有效减少幻觉？","options":[{"letter":"A","text":"纯解码器架构（如GPT）"},{"letter":"B","text":"编码器-解码器架构（如T5）"},{"letter":"C","text":"检索增强生成（RAG）"},{"letter":"D","text":"卷积神经网络（CNN）"}],"answer":"C"},{"id":249,"type":"single","question":"以下哪种提示（Prompt）策略有助于降低幻觉风险？","options":[{"letter":"A","text":"要求模型“自由发挥想象力”"},{"letter":"B","text":"明确要求“仅基于可信来源回答”"},{"letter":"C","text":"使用开放式问题"},{"letter":"D","text":"提供大量无关联的示例"}],"answer":"B"},{"id":250,"type":"single","question":"词向量的核心目标是什么？","options":[{"letter":"A","text":"将词语转换为独热编码（One-Hot Encoding）"},{"letter":"B","text":"在低维连续向量空间中捕捉词语的语义和语法关系"},{"letter":"C","text":"提高文本分类任务的速度"},{"letter":"D","text":"减少词典大小"}],"answer":"B"},{"id":251,"type":"single","question":"词向量之间的余弦相似度通常用于衡量什么？","options":[{"letter":"A","text":"词语的拼写相似性"},{"letter":"B","text":"词语的语义相似性"},{"letter":"C","text":"句子的语法复杂度"},{"letter":"D","text":"文本的情感极性"}],"answer":"B"},{"id":252,"type":"single","question":"以下哪种应用场景最依赖语言模型？","options":[{"letter":"A","text":"人脸识别"},{"letter":"B","text":"机器翻译"},{"letter":"C","text":"自动驾驶路径规划"},{"letter":"D","text":"医学影像分析"}],"answer":"B"},{"id":253,"type":"single","question":"GPT（生成式预训练模型）的核心特点是？","options":[{"letter":"A","text":"仅支持文本分类任务"},{"letter":"B","text":"基于自回归生成（逐词生成文本）"},{"letter":"C","text":"仅使用图像数据训练"},{"letter":"D","text":"模型参数量固定为1亿"}],"answer":"B"},{"id":254,"type":"single","question":"以下哪种技术能帮助语言模型理解用户意图？","options":[{"letter":"A","text":"数据增强（DataAugmentation）"},{"letter":"B","text":"指令微调（InstructionTuning）"},{"letter":"C","text":"随机森林分类器"},{"letter":"D","text":"图像分割"}],"answer":"B"},{"id":255,"type":"single","question":"大模型“涌现能力”（EmergentAbility）指的是：","options":[{"letter":"A","text":"模型参数越多，训练速度越快"},{"letter":"B","text":"小模型表现优于大模型"},{"letter":"C","text":"模型在参数量达到阈值后突然具备新能力"},{"letter":"D","text":"模型自动删除无用数据"}],"answer":"C"},{"id":256,"type":"single","question":"在自然语言处理中，“词向量”（WordEmbedding）的作用是：","options":[{"letter":"A","text":"将词语转换为计算机可理解的数值向量"},{"letter":"B","text":"压缩文本文件大小"},{"letter":"C","text":"生成艺术风格图片"},{"letter":"D","text":"优化硬盘存储空间"}],"answer":"A"},{"id":257,"type":"single","question":"以下哪项技术可以帮助大模型减少生成不真实内容（如虚构事实）的问题？","options":[{"letter":"A","text":"增加模型参数规模"},{"letter":"B","text":"使用更高精度的浮点数"},{"letter":"C","text":"与搜索引擎实时结合验证"},{"letter":"D","text":"提高训练数据压缩率"}],"answer":"C"},{"id":258,"type":"single","question":"大语言模型（如ChatGPT）的“预训练”阶段主要学习的是：","options":[{"letter":"A","text":"特定任务（如翻译）的标注数据"},{"letter":"B","text":"海量无标注文本中的语言规律"},{"letter":"C","text":"如何操作机器人手臂"},{"letter":"D","text":"数学公式推导"}],"answer":"B"},{"id":259,"type":"single","question":"以下哪个是自然语言处理的典型应用？","options":[{"letter":"A","text":"人脸识别解锁手机"},{"letter":"B","text":"智能客服自动回复问题"},{"letter":"C","text":"自动驾驶汽车避障"},{"letter":"D","text":"无人机航拍摄影"}],"answer":"B"},{"id":260,"type":"single","question":"自然语言处理（NLP）的主要目标是让计算机能够：","options":[{"letter":"A","text":"播放高清视频"},{"letter":"B","text":"理解和生成人类语言"},{"letter":"C","text":"识别图像中的物体"},{"letter":"D","text":"控制机器人行走"}],"answer":"B"},{"id":261,"type":"single","question":"以下哪种方法可以降低大模型的碳排放？","options":[{"letter":"A","text":"使用更多GPU集群训练"},{"letter":"B","text":"采用更高效的模型架构"},{"letter":"C","text":"增加训练数据量"},{"letter":"D","text":"提高模型参数量"}],"answer":"B"},{"id":262,"type":"single","question":"以下哪个任务不属于自然语言处理（NLP）的典型应用？","options":[{"letter":"A","text":"机器翻译"},{"letter":"B","text":"情感分析"},{"letter":"C","text":"图像分类"},{"letter":"D","text":"文本摘要"}],"answer":"C"},{"id":263,"type":"single","question":"Transformer 模型的核心机制是？","options":[{"letter":"A","text":"循环神经网络（RNN）"},{"letter":"B","text":"卷积神经网络（CNN）"},{"letter":"C","text":"注意力机制（Attention）"},{"letter":"D","text":"强化学习（Reinforcement Learning）"}],"answer":"C"},{"id":264,"type":"single","question":"大模型伦理问题中的“幻觉”（Hallucination）指什么？","options":[{"letter":"A","text":"模型生成重复内容"},{"letter":"B","text":"模型生成与输入无关的虚假信息"},{"letter":"C","text":"模型训练速度过慢"},{"letter":"D","text":"模型无法处理长文本"}],"answer":"B"},{"id":265,"type":"single","question":"模型幻觉问题的根本原因可能包括：","options":[{"letter":"A","text":"训练数据与真实世界知识存在偏差"},{"letter":"B","text":"模型参数量过大"},{"letter":"C","text":"GPU显存不足"},{"letter":"D","text":"用户输入语法错误"}],"answer":"A"},{"id":266,"type":"single","question":"知识图谱的核心目标是什么？","options":[{"letter":"A","text":"存储海量非结构化文本"},{"letter":"B","text":"通过结构化语义网络描述实体及其关系"},{"letter":"C","text":"加速图像识别任务"},{"letter":"D","text":"优化神经网络训练速度"}],"answer":"B"},{"id":267,"type":"single","question":"以下哪种数据库类型最适合存储知识图谱？","options":[{"letter":"A","text":"关系型数据库（如MySQL）"},{"letter":"B","text":"文档数据库（如MongoDB）"},{"letter":"C","text":"键值数据库（如Redis）"},{"letter":"D","text":"图数据库（如Neo4j）"}],"answer":"D"},{"id":268,"type":"single","question":"知识图谱构建的关键步骤不包括：","options":[{"letter":"A","text":"实体识别"},{"letter":"B","text":"关系抽取"},{"letter":"C","text":"图像分类"},{"letter":"D","text":"知识融合"}],"answer":"C"},{"id":269,"type":"single","question":"知识图谱的典型应用场景是？","options":[{"letter":"A","text":"图像风格迁移"},{"letter":"B","text":"语音信号降噪"},{"letter":"C","text":"智能问答系统（如谷歌搜索）"},{"letter":"D","text":"视频压缩编码"}],"answer":"C"},{"id":270,"type":"single","question":"知识图谱与传统数据库的核心区别在于？","options":[{"letter":"A","text":"存储容量更大"},{"letter":"B","text":"强调实体间的语义关联"},{"letter":"C","text":"支持事务处理"},{"letter":"D","text":"读写速度更快"}],"answer":"B"},{"id":271,"type":"bool","question":"知识图谱的“本体（Ontology）”主要用于：","options":[{"letter":"A","text":"定义实体类别与关系的逻辑约束"},{"letter":"B","text":"优化图数据库的存储效率"},{"letter":"C","text":"压缩知识表示空间"},{"letter":"D","text":"生成自然语言描述"}],"answer":"A"},{"id":272,"type":"single","question":"知识图谱一种结构化的语义知识库，将知识以 的形式存下来？","options":[{"letter":"A","text":"数组"},{"letter":"B","text":"树"},{"letter":"C","text":"图"},{"letter":"D","text":"表"}],"answer":"C"},{"id":273,"type":"single","question":"以下哪个不是知识图谱的主要组成部分？","options":[{"letter":"A","text":"边"},{"letter":"B","text":"节点"},{"letter":"C","text":"关系事实"},{"letter":"D","text":"本体"}],"answer":"D"},{"id":274,"type":"single","question":"在知识图谱中，实体不可以是？","options":[{"letter":"A","text":"实例"},{"letter":"B","text":"数值"},{"letter":"C","text":"时间"},{"letter":"D","text":"某人出生于某地"}],"answer":"D"},{"id":275,"type":"single","question":"知识图谱通常用 来表示。","options":[{"letter":"A","text":"数值向量"},{"letter":"B","text":"字符串序列"},{"letter":"C","text":"有向图"},{"letter":"D","text":"二叉树"}],"answer":"C"},{"id":276,"type":"single","question":"是一种结合了信息检索技术和大型语言模型生成的人工智能技术。","options":[{"letter":"A","text":"检索增强生成（简称 RAG）"},{"letter":"B","text":"知识图谱"},{"letter":"C","text":"本体"},{"letter":"D","text":"模型压缩"}],"answer":"A"},{"id":277,"type":"single","question":"检索增强生成（RAG）的核心思想是？","options":[{"letter":"A","text":"仅依赖生成模型内部知识;"},{"letter":"B","text":"结合检索外部知识库与生成模型的能力;"},{"letter":"C","text":"完全替代传统搜索引擎;"},{"letter":"D","text":"仅优化生成模型的推理速度"}],"answer":"B"},{"id":278,"type":"single","question":"检索增强生成（RAG）模型的工作流程通常分为哪两个主要阶段？","options":[{"letter":"A","text":"训练与微调"},{"letter":"B","text":"检索与生成"},{"letter":"C","text":"编码与解码"},{"letter":"D","text":"分词与向量化"}],"answer":"B"},{"id":279,"type":"single","question":"检索增强生成（RAG）相比纯生成模型（如GPT）的主要优势是？","options":[{"letter":"A","text":"减少模型参数量;"},{"letter":"B","text":"降低对训练数据量的依赖;"},{"letter":"C","text":"提高生成内容的事实准确性;"},{"letter":"D","text":"完全消除生成重复文本的问题"}],"answer":"C"},{"id":280,"type":"single","question":"莫拉维克悖论的核心观点是以下哪一项？","options":[{"letter":"A","text":"人类的高级逻辑推理能力难以被机器模仿"},{"letter":"B","text":"一些对人类来说简单的感知和运动技能，机器实现起来反而比高级推理困难"},{"letter":"C","text":"人类和机器在低级技能上的学习速度相同"},{"letter":"D","text":"机器无法进行复杂的数学计算"}],"answer":"B"},{"id":281,"type":"single","question":"以下哪项是莫拉维克悖论的典型例子？","options":[{"letter":"A","text":"AlphaGo 难以击败围棋世界冠军"},{"letter":"B","text":"机器人依靠复杂技术完成了叠衣服这一简单的任务"},{"letter":"C","text":"自动驾驶汽车可以识别交通信号灯"},{"letter":"D","text":"语音助手可以用于回答问题"}],"answer":"B"},{"id":282,"type":"single","question":"莫拉维克悖论的提出者不包括以下哪位？","options":[{"letter":"A","text":"汉斯·莫拉维克"},{"letter":"B","text":"罗德尼·布鲁克斯"},{"letter":"C","text":"马文·明斯基"},{"letter":"D","text":"艾伦·图灵"}],"answer":"D"},{"id":283,"type":"single","question":"强化学习的核心机制是？","options":[{"letter":"A","text":"通过监督数据优化模型"},{"letter":"B","text":"通过试错和奖励信号调整策略"},{"letter":"C","text":"基于无标签数据聚类"},{"letter":"D","text":"依赖先验知识直接决策"}],"answer":"B"},{"id":284,"type":"single","question":"马尔可夫决策过程（MDP）的五元组不包括以下哪项？","options":[{"letter":"A","text":"状态空间（S）"},{"letter":"B","text":"动作空间（A）"},{"letter":"C","text":"奖励函数（R）"},{"letter":"D","text":"学习率（α）"}],"answer":"D"},{"id":285,"type":"single","question":"下列哪一项符合深度强化学习的特点？","options":[{"letter":"A","text":"结合监督学习和无监督学习"},{"letter":"B","text":"使用神经网络处理高维和连续的状态输入"},{"letter":"C","text":"仅依赖无监督学习"},{"letter":"D","text":"完全不需要环境交互"}],"answer":"B"},{"id":286,"type":"single","question":"AlphaGo 的成功主要使用了哪两项技术的结合？","options":[{"letter":"A","text":"规划技术与无监督学习"},{"letter":"B","text":"强化学习与深度学习"},{"letter":"C","text":"聚类分析与逻辑回归"},{"letter":"D","text":"卷积神经网络与循环神经网络"}],"answer":"B"},{"id":287,"type":"single","question":"强化学习中的折扣因子γ的主要作用是？","options":[{"letter":"A","text":"调整学习率"},{"letter":"B","text":"是折扣累计回报G的核心参数，用于调节当前奖励与未来奖励的重要性"},{"letter":"C","text":"限制动作空间大小"},{"letter":"D","text":"限制状态空间大小"}],"answer":"B"},{"id":288,"type":"single","question":"关于强化学习与监督学习，下面哪一个说法正确？","options":[{"letter":"A","text":"两者都需要大量标注独立同分布数据"},{"letter":"B","text":"强化学习依赖试错和延迟奖励"},{"letter":"C","text":"监督学习主要用于处理连续决策问题"},{"letter":"D","text":"两者都基于规则推理"}],"answer":"B"},{"id":289,"type":"single","question":"在强化学习中，智能体的最终目标是最大化什么？","options":[{"letter":"A","text":"单步奖励"},{"letter":"B","text":"累计折扣奖励"},{"letter":"C","text":"动作执行速度"},{"letter":"D","text":"状态转移频率"}],"answer":"B"},{"id":290,"type":"single","question":"关于环境分类，以下哪个智能体的环境是完全可观察的？","options":[{"letter":"A","text":"自动驾驶出租车"},{"letter":"B","text":"医疗诊断智能体"},{"letter":"C","text":"围棋AlphaGo"},{"letter":"D","text":"零件挑选机器人"}],"answer":"C"},{"id":291,"type":"single","question":"在强化学习中，策略（Policy）的功能是？","options":[{"letter":"A","text":"感知环境状态"},{"letter":"B","text":"执行物理动作"},{"letter":"C","text":"定义状态到动作的映射"},{"letter":"D","text":"计算即时奖励"}],"answer":"C"},{"id":292,"type":"single","question":"HumanPlus 机器人训练中使用的强化学习算法是？","options":[{"letter":"A","text":"Q-learning"},{"letter":"B","text":"近端策略优化（PPO）"},{"letter":"C","text":"深度确定性策略梯度（DDPG）"},{"letter":"D","text":"基于模型的强化学习算法"}],"answer":"B"},{"id":293,"type":"single","question":"以下哪种不是定义智能体的规则（）","options":[{"letter":"A","text":"需要具备识别环境的能力"},{"letter":"B","text":"根据观察做出决定"},{"letter":"C","text":"决定应该导致行动"},{"letter":"D","text":"行动可以是随意的"}],"answer":"D"},{"id":294,"type":"single","question":"以下关于智能体的说法，哪个是不正确的（）","options":[{"letter":"A","text":"智能体是任何可以通过传感器感知其环境并通过执行器对环境进行作用的主体"},{"letter":"B","text":"智能体根据观察做出决定"},{"letter":"C","text":"智能体基于它的感知及它能执行的行动“做正确的事”"},{"letter":"D","text":"理性智能体知道他行动的实际效果并做出行动获得完美结果"}],"answer":"D"},{"id":295,"type":"single","question":"智能体的理性不取决于以下哪个选项（）","options":[{"letter":"A","text":"给定的性能度量"},{"letter":"B","text":"自身动作的随机性"},{"letter":"C","text":"内在的先验知识"},{"letter":"D","text":"感知序列"}],"answer":"B"},{"id":296,"type":"single","question":"智能体的任务环境描述不包含下面哪个选项（）","options":[{"letter":"A","text":"性能度量"},{"letter":"B","text":"环境"},{"letter":"C","text":"状态空间"},{"letter":"D","text":"执行器"}],"answer":"C"},{"id":297,"type":"single","question":"以下哪一项不属于医疗诊断智能体的PEAS任务环境（）","options":[{"letter":"A","text":"医院"},{"letter":"B","text":"医生的行医执照"},{"letter":"C","text":"触摸屏"},{"letter":"D","text":"疾病诊断准确性"}],"answer":"B"},{"id":298,"type":"single","question":"以下哪一项不能作为智能体环境类型的分类依据（）","options":[{"letter":"A","text":"传感器是否获取环境的所有状态"},{"letter":"B","text":"智能体的决策是否需要获取环境状态"},{"letter":"C","text":"环境的下一个状态是否完全取决于当前状态和智能体的行动"},{"letter":"D","text":"智能体当前行动的选择是否不依赖于以前的行动"}],"answer":"B"},{"id":299,"type":"single","question":"以下关于环境类型的说法哪项是正确的（）","options":[{"letter":"A","text":"自动驾驶任务中环境是完全可观察的"},{"letter":"B","text":"围棋任务中环境中环境是部分可观察的"},{"letter":"C","text":"零件挑选机器人的任务环境是动态的"},{"letter":"D","text":"自动驾驶任务中环境是离散的"}],"answer":"C"},{"id":300,"type":"single","question":"根据人工智能中智能体任务环境（TaskEnvironment）的分类标准，以下关于自动驾驶环境属性的分析，哪项是不正确的？","options":[{"letter":"A","text":"自动驾驶系统通过摄像头和激光雷达获取信息，但受限于视场角、遮挡物以及有效探测距离，无法获取环境的完整状态，因此属于部分可观察（PartiallyObservable）环境。"},{"letter":"B","text":"在行驶过程中，当前时间步的决策（如变道、加速）及其导致的后果，不会对未来时间步的环境状态分布产生影响，因此属于片段式环境。"},{"letter":"C","text":"道路上的其他人类驾驶员或自动驾驶车辆同样在追求自身效用（安全、高效）的最大化，系统需要将它们作为独立的智能体进行交互和博弈，因此属于多智能体环境。"},{"letter":"D","text":"即使排除其他交通参与者的影响，由于车辆轮胎打滑、传感器噪声等物理世界的不确定性，环境的下一个状态无法完全由当前状态和动作唯一确定，因此属于随机性环境。"}],"answer":"B"},{"id":301,"type":"single","question":"以下关于医疗诊断智能体环境类型的说法哪项是正确的（）","options":[{"letter":"A","text":"环境是部分可观察的"},{"letter":"B","text":"环境下一状态完全取决于智能体行动"},{"letter":"C","text":"环境随智能体思考发生改变"},{"letter":"D","text":"是多智能体任务环境"}],"answer":"A"},{"id":302,"type":"single","question":"关于智能体的分类，以下哪个不属于智能体的基本类型（）","options":[{"letter":"A","text":"简单反射型智能体"},{"letter":"B","text":"基于模型的反射型智能体"},{"letter":"C","text":"理性智能体"},{"letter":"D","text":"基于目标的智能体"}],"answer":"C"},{"id":303,"type":"single","question":"对于表驱动的智能体，以下那种说法是不正确的（）","options":[{"letter":"A","text":"构建一个表记录所有的感知序列及其最佳行动"},{"letter":"B","text":"智能体在运行时会根据感知，通过查表方式来决定行动"},{"letter":"C","text":"一般很容易获取查询表的所有条目"},{"letter":"D","text":"需要花费大量的时间构建表，甚至无法构建"}],"answer":"C"},{"id":304,"type":"single","question":"以下关于简单反射型智能体说法不正确的是（）","options":[{"letter":"A","text":"简单反射型智能体基于状态-动作规则进行决策"},{"letter":"B","text":"需要与环境进行交互"},{"letter":"C","text":"基于当前的感知选择行动，不涉及目标、效用等信息"},{"letter":"D","text":"需要基于感知历史进行决策"}],"answer":"D"},{"id":305,"type":"single","question":"以下关于基于目标的智能体说法不正确的是（）","options":[{"letter":"A","text":"为了达到目标选择合适的行动"},{"letter":"B","text":"只考虑一个短期看起来有利的行动并执行"},{"letter":"C","text":"为达到目标，可能会考虑一个很长的可能行动序列"},{"letter":"D","text":"会思考如果执行这个行为后，世界会怎样变化"}],"answer":"B"},{"id":306,"type":"single","question":"以下关于基于效用的智能体说法不正确的是（）","options":[{"letter":"A","text":"需要与环境交互"},{"letter":"B","text":"需要更通用的性能度量"},{"letter":"C","text":"智能体的决策过程中涉及到效用函数的使用"},{"letter":"D","text":"性能度量的反馈信息比较单一"}],"answer":"D"},{"id":307,"type":"single","question":"以下关于学习智能体说法不正确的是（）","options":[{"letter":"A","text":"以基本知识开始执行动作，能够通过学习自动行动与适应"},{"letter":"B","text":"学习元素从评价器获得反馈，这些反馈描述了智能体在固定性能标准方面的表现"},{"letter":"C","text":"不需要行动的反馈"},{"letter":"D","text":"需要从环境中学习"}],"answer":"C"},{"id":308,"type":"single","question":"以下哪一项是机器人的基本组成？","options":[{"letter":"A","text":"传感器、处理器、效应器"},{"letter":"B","text":"显示器、键盘、鼠标"},{"letter":"C","text":"电池、外壳、轮子"},{"letter":"D","text":"软件、硬件、网络"}],"answer":"A"},{"id":309,"type":"single","question":"下列关于机器人的说法中，正确的是：","options":[{"letter":"A","text":"所有机器人都需要人工控制"},{"letter":"B","text":"机器人只能在工厂中使用"},{"letter":"C","text":"机器人是一种具备感知、决策和执行能力的智能系统"},{"letter":"D","text":"机器人不具备自主性"}],"answer":"C"},{"id":310,"type":"single","question":"机器人被称为“智能决策的实体”，是因为它能：","options":[{"letter":"A","text":"模拟人类行为"},{"letter":"B","text":"独立完成所有任务"},{"letter":"C","text":"具备感知、处理和执行的能力"},{"letter":"D","text":"完全替代人类"}],"answer":"C"},{"id":311,"type":"single","question":"激光雷达属于哪类传感器？","options":[{"letter":"A","text":"无源传感器"},{"letter":"B","text":"温度传感器"},{"letter":"C","text":"有源传感器"},{"letter":"D","text":"接触式传感器"}],"answer":"C"},{"id":312,"type":"single","question":"机器人“看见”前方物体，是通过哪个部件完成的？","options":[{"letter":"A","text":"机械臂"},{"letter":"B","text":"传感器"},{"letter":"C","text":"处理器"},{"letter":"D","text":"执行器"}],"answer":"B"},{"id":313,"type":"single","question":"有源传感器与无源传感器的主要区别是：","options":[{"letter":"A","text":"有源传感器更容易安装和部署"},{"letter":"B","text":"有源传感器主动发出信号"},{"letter":"C","text":"无源传感器使用电池"},{"letter":"D","text":"无源传感器只能探测金属"}],"answer":"B"},{"id":314,"type":"single","question":"机器人进行逻辑推理和决策主要依靠哪个部件？","options":[{"letter":"A","text":"传感器"},{"letter":"B","text":"摄像头"},{"letter":"C","text":"处理器"},{"letter":"D","text":"电源"}],"answer":"C"},{"id":315,"type":"single","question":"下列哪个选项可以作为机器人的“眼睛”：","options":[{"letter":"A","text":"电源"},{"letter":"B","text":"红外传感器"},{"letter":"C","text":"激光切割装置"},{"letter":"D","text":"电机"}],"answer":"B"},{"id":316,"type":"single","question":"机器人进行自我判断并选择行为的能力来自于：","options":[{"letter":"A","text":"数据库"},{"letter":"B","text":"决策程序"},{"letter":"C","text":"执行机构"},{"letter":"D","text":"能源系统"}],"answer":"B"},{"id":317,"type":"single","question":"机器人将感知信息转为行动指令的是：","options":[{"letter":"A","text":"电源系统"},{"letter":"B","text":"通信模块"},{"letter":"C","text":"处理器"},{"letter":"D","text":"液压机构"}],"answer":"C"},{"id":318,"type":"single","question":"有源传感器最大的优势是：","options":[{"letter":"A","text":"造价低"},{"letter":"B","text":"主动感知并构建环境模型"},{"letter":"C","text":"可以完全替代人类视觉"},{"letter":"D","text":"不依赖电源"}],"answer":"B"},{"id":319,"type":"single","question":"以下关于机器人自主性的描述，正确的是：","options":[{"letter":"A","text":"工业机械臂完全不能适应环境变化"},{"letter":"B","text":"扫地机器人能根据房间布局自主规划路径"},{"letter":"C","text":"火星车需要人工操作每一个动作"},{"letter":"D","text":"手术机器人不依赖任何预设程序"}],"answer":"B"},{"id":320,"type":"single","question":"机器人系统中，三大核心模块的协作流程正确顺序是：","options":[{"letter":"A","text":"效应器 → 传感器 → 处理器"},{"letter":"B","text":"处理器 → 传感器 → 效应器"},{"letter":"C","text":"传感器 → 处理器 → 效应器"},{"letter":"D","text":"电源 → 执行器 → 显示器"}],"answer":"C"},{"id":321,"type":"single","question":"以下哪项不属于人工智能自身的内生风险？","options":[{"letter":"A","text":"自动驾驶系统错误决策导致事故"},{"letter":"B","text":"医疗AI因数据保护不力泄露隐私"},{"letter":"C","text":"生成模型伪造虚假新闻误导公众"},{"letter":"D","text":"模型推理过程不透明难以信任"}],"answer":"C"},{"id":322,"type":"single","question":"AI安全研究的核心目标之一是提升模型的______，即模型在噪声、干扰或恶意攻击下仍能保持稳定输出的能力。​","options":[{"letter":"A","text":"透明性"},{"letter":"B","text":"鲁棒性"},{"letter":"C","text":"公平性"},{"letter":"D","text":"可解释性"}],"answer":"B"},{"id":323,"type":"single","question":"以下哪项属于AI伦理治理中“透明性”原则的具体要求？","options":[{"letter":"A","text":"确保模型训练数据来源合法"},{"letter":"B","text":"保证用户不滥用AI"},{"letter":"C","text":"向用户说明AI决策逻辑与依据"},{"letter":"D","text":"限制模型的使用场景"}],"answer":"C"},{"id":324,"type":"single","question":"为防范数据泄露风险，AI开发中应优先采取的措施是______。​","options":[{"letter":"A","text":"清洗训练数据中的有害内容"},{"letter":"B","text":"使用差分隐私技术"},{"letter":"C","text":"提高训练数据规模"},{"letter":"D","text":"部署模型压缩工具"}],"answer":"B"},{"id":325,"type":"single","question":"在AI安全伦理风险防范技术中，通过调整训练过程使模型对输入扰动更鲁棒的方法是______。","options":[{"letter":"A","text":"数据增广"},{"letter":"B","text":"对抗训练"},{"letter":"C","text":"数据生成"},{"letter":"D","text":"价值对齐"}],"answer":"B"},{"id":326,"type":"single","question":"以下哪项不属于AI伦理指导原则中的关键要求？","options":[{"letter":"A","text":"透明性"},{"letter":"B","text":"数据生成"},{"letter":"C","text":"隐私保护"},{"letter":"D","text":"公平性"}],"answer":"B"},{"id":327,"type":"single","question":"AI技术对社会就业的冲击属于以下哪种风险？","options":[{"letter":"A","text":"内生风险"},{"letter":"B","text":"衍生风险"},{"letter":"C","text":"技术漏洞"},{"letter":"D","text":"数据偏见"}],"answer":"B"},{"id":328,"type":"single","question":"以下哪项属于AI系统的内生风险？","options":[{"letter":"A","text":"生成虚假新闻误导公众"},{"letter":"B","text":"模型决策过程不可解释"},{"letter":"C","text":"技术滥用导致劳资矛盾"},{"letter":"D","text":"自动化取代传统岗位"}],"answer":"B"},{"id":329,"type":"single","question":"公平性风险的主要产生原因不包括以下哪一项？​ ​","options":[{"letter":"A","text":"训练数据中的历史偏见"},{"letter":"B","text":"模型优化目标忽略公平性约束"},{"letter":"C","text":"训练过程中缺乏偏见检测算法"},{"letter":"D","text":"模型无法理解用户指令​ ​"}],"answer":"D"},{"id":330,"type":"single","question":"有害性风险仅涉及生成暴力、色情等恶意内容，不包括伦理问题。这句话是否正确？​ ​","options":[{"letter":"A","text":"正确"},{"letter":"B","text":"错误​ ​"}],"answer":"B"},{"id":331,"type":"single","question":"人工智能模型在微调后丢失原有知识的现象称为______。​ ​","options":[{"letter":"A","text":"数据偏差"},{"letter":"B","text":"灾难性遗忘"},{"letter":"C","text":"过拟合"},{"letter":"D","text":"训练不稳定​ ​"}],"answer":"B"},{"id":332,"type":"single","question":"以下哪项属于可靠性风险的典型表现？​ ​","options":[{"letter":"A","text":"生成种族歧视言论"},{"letter":"B","text":"输出与输入指令无关的内容"},{"letter":"C","text":"导致就业市场失衡"},{"letter":"D","text":"教唆用户自残​ ​"}],"answer":"B"},{"id":333,"type":"single","question":"人工智能滥用导致的学术造假和就业市场失衡属于衍生风险问题。这句话是否正确？​ ​","options":[{"letter":"A","text":"正确"},{"letter":"B","text":"错误​ ​"}],"answer":"A"},{"id":334,"type":"single","question":"训练数据中包含未清洗的暴力内容，可能导致模型输出______风险。​ ​","options":[{"letter":"A","text":"公平性"},{"letter":"B","text":"可靠性"},{"letter":"C","text":"有害性"},{"letter":"D","text":"安全性​ ​"}],"answer":"C"},{"id":335,"type":"single","question":"以下哪项是模型优化目标忽略公平性约束的直接后果？​ ​","options":[{"letter":"A","text":"提高模型推理速度"},{"letter":"B","text":"加剧对特定群体的系统性偏见"},{"letter":"C","text":"减少训练数据需求量"},{"letter":"D","text":"增强模型泛化能力​ ​"}],"answer":"B"},{"id":337,"type":"single","question":"模型鲁棒性差最可能表现为以下哪种情况？​ ​","options":[{"letter":"A","text":"在对抗样本攻击下输出错误结果"},{"letter":"B","text":"训练时需要大量计算资源"},{"letter":"C","text":"用户界面设计不友好"},{"letter":"D","text":"模型文件体积过大"}],"answer":"A"},{"id":338,"type":"single","question":"通过黑盒访问接口复制目标模型参数信息的攻击方式属于______。​ ​","options":[{"letter":"A","text":"成员推断攻击"},{"letter":"B","text":"对抗样本攻击"},{"letter":"C","text":"模型反演攻击"},{"letter":"D","text":"模型窃取攻击"}],"answer":"D"},{"id":339,"type":"single","question":"模型做出判断时高度依赖复杂的参数与非线性映射，使得其推理过程难以追溯，这种“________”现象妨碍了可解释性。","options":[{"letter":"A","text":"信息冗余"},{"letter":"B","text":"黑箱效应"},{"letter":"C","text":"神经激活偏差"},{"letter":"D","text":"局部最优陷阱"}],"answer":"B"},{"id":340,"type":"multi","question":"（多选题）以下哪些情形属于对人工智能模型鲁棒性构成威胁？","options":[{"letter":"A","text":"模型在普通用户指令下生成有害回复"},{"letter":"B","text":"模型难以识别对抗补丁遮挡的人体"},{"letter":"C","text":"模型在不同设备间运行速度不一致"},{"letter":"D","text":"模型对训练外情境无法做出正确反应"}],"answer":["B","D"]},{"id":341,"type":"bool","question":"可解释性风险不会导致模型输出错误结果，因此可以在高风险领域中忽略。","options":[{"letter":"A","text":"正确"},{"letter":"B","text":"错误"}],"answer":"B"},{"id":342,"type":"single","question":"为什么说“长尾风险”是鲁棒性问题的一种表现？","options":[{"letter":"A","text":"因为模型未能对训练集中大量出现的样本进行强化学习"},{"letter":"B","text":"因为模型在尾部少数情境下缺乏足够的训练经验"},{"letter":"C","text":"因为模型对数据中随机噪声过于敏感"}],"answer":"B"},{"id":343,"type":"single","question":"下列哪项攻击方式能在不知模型细节的前提下，通过接口构造出一个高度相似的模型？","options":[{"letter":"A","text":"模型蒸馏攻击"},{"letter":"B","text":"模型反演攻击"},{"letter":"C","text":"模型窃取攻击"},{"letter":"D","text":"成员推断攻击"}],"answer":"C"},{"id":344,"type":"single","question":"隐私性风险可能在训练、部署和使用各阶段发生，尤其当训练数据未经________处理时更易泄露敏感信息。","options":[{"letter":"A","text":"多轮标注"},{"letter":"B","text":"模型蒸馏"},{"letter":"C","text":"匿名化"},{"letter":"D","text":"统一格式"}],"answer":"C"},{"id":345,"type":"single","question":"基于数据的AI风险防范技术不包括以下哪一项？​ ​","options":[{"letter":"A","text":"数据筛选与清洗"},{"letter":"B","text":"对抗训练"},{"letter":"C","text":"数据生成"},{"letter":"D","text":"数据增广"}],"answer":"B"},{"id":346,"type":"single","question":"以下哪项技术通过多个AI智能体协作提升推理准确性？​ ​","options":[{"letter":"A","text":"模型自推理改进"},{"letter":"B","text":"多智能体推理"},{"letter":"C","text":"推理过程干预"},{"letter":"D","text":"数据增广"}],"answer":"B"},{"id":347,"type":"single","question":"数据清洗技术通过人工生成新样本解决数据稀缺问题，尤其在医疗领域应用广泛。​ ​","options":[{"letter":"A","text":"正确"},{"letter":"B","text":"错误"}],"answer":"B"},{"id":348,"type":"single","question":"检索增强生成技术依赖模型自身参数，不引入外部知识库。​ ​","options":[{"letter":"A","text":"正确"},{"letter":"B","text":"错误"}],"answer":"B"},{"id":349,"type":"single","question":"基于数据的AI风险防范技术中，以下哪项是提高已有数据质量的关键方式？​ ​","options":[{"letter":"A","text":"数据生成"},{"letter":"B","text":"数据增广"},{"letter":"C","text":"数据筛选与清洗"},{"letter":"D","text":"对抗训练"}],"answer":"C"},{"id":350,"type":"multi","question":"（多选题）数据清洗的核心目标包括：​ ​","options":[{"letter":"A","text":"删除重复数据"},{"letter":"B","text":"修正标注错误"},{"letter":"C","text":"降低数据存储成本"},{"letter":"D","text":"去除异常数值"}],"answer":["A","B","D"]},{"id":351,"type":"multi","question":"（多选题）以下哪些属于基于训练策略的AI风险防范技术？​ ​","options":[{"letter":"A","text":"指令微调"},{"letter":"B","text":"检索增强生成"},{"letter":"C","text":"对抗训练"},{"letter":"D","text":"多智能体推理"}],"answer":["A","C"]},{"id":352,"type":"single","question":"以下哪种风险防范技术能够实现模型的自我调节？​ ​","options":[{"letter":"A","text":"数据清洗"},{"letter":"B","text":"检索增强生成"},{"letter":"C","text":"多智能体推理"},{"letter":"D","text":"模型自推理改进"}],"answer":"D"},{"id":353,"type":"single","question":"构建更完善的风险防范理论体系的核心任务不包括以下哪项？​ ​","options":[{"letter":"A","text":"制定统一的AI价值体系"},{"letter":"B","text":"提升模型训练速度"},{"letter":"C","text":"分析安全防范的局限与制衡"},{"letter":"D","text":"发展系统化的安全优化理论"}],"answer":"B"},{"id":354,"type":"single","question":"从更完善的风险防范理论体系角度看，除了下列哪项外，都是需要采取的措施？","options":[{"letter":"A","text":"制定合理且统一的 AI 价值体系"},{"letter":"B","text":"发展更系统的安全优化理论"},{"letter":"C","text":"增加 AI 系统的计算能力"},{"letter":"D","text":"分析安全风险防范的局限与制衡"}],"answer":"C"},{"id":355,"type":"single","question":"超级对齐研究的目的是解决未来超级智能体可能超出人类控制的问题。这句话是否正确？​ ​","options":[{"letter":"A","text":"正确"},{"letter":"B","text":"错误"}],"answer":"A"},{"id":356,"type":"single","question":"分析安全风险防范的“局限与制衡”时，需考虑______层面的因素。​ ​","options":[{"letter":"A","text":"仅技术"},{"letter":"B","text":"技术、伦理、法律"},{"letter":"C","text":"仅硬件性能"},{"letter":"D","text":"仅数据规模"}],"answer":"B"},{"id":357,"type":"single","question":"下列哪项不是建立更全面的多维度风险评测基准的作用？","options":[{"letter":"A","text":"掌握模型风险防范程度"},{"letter":"B","text":"发现模型风险的具体问题"},{"letter":"C","text":"解决模型推理速度不快的问题"},{"letter":"D","text":"进行公平性、有害性等性能的横向比较"}],"answer":"C"},{"id":358,"type":"single","question":"下列哪项不属于更有效的风险防范治理应集中解决的问题？","options":[{"letter":"A","text":"AI 应用引发的社会与伦理问题"},{"letter":"B","text":"提升 AI 系统的计算能力"},{"letter":"C","text":"减轻 AI 对人类就业的负面影响"},{"letter":"D","text":"制定全面的治理战略"}],"answer":"B"},{"id":359,"type":"single","question":"要打造有效的 AI 风险防范治理，需要哪些方面的协同合作？","options":[{"letter":"A","text":"政策制定者"},{"letter":"B","text":"企业领导者"},{"letter":"C","text":"研究人员"},{"letter":"D","text":"以上都是"}],"answer":"D"},{"id":360,"type":"single","question":"AI风险防范治理的关键目标是？​ ​","options":[{"letter":"A","text":"优先保证模型计算效率"},{"letter":"B","text":"平衡技术创新与道德部署"},{"letter":"C","text":"减少模型参数量以降低成本"},{"letter":"D","text":"扩大AI在军事领域的应用59"}],"answer":"B"}];
+
+// ========== STATE ==========
+const STATE_KEY = 'ai_practice_state';
+function loadState() {
+  const defaults = {
+    answered: {},
+    wrongIds: [],
+    wrongCount: {},
+    currentIndex: 0,
+    mode: 'sequential',
+    filter: 'all',
+    autoAdvance: true,
+    streak: 0,
+    maxStreak: 0,
+    xp: 0,
+    level: 1,
+    questionTimes: {},
+    avgTime: 0,
+    fastestTime: 0,
+    soundEnabled: true,
+    minimalMode: false,
+    userChoices: {},
+  };
+  try {
+    const raw = localStorage.getItem(STATE_KEY);
+    if (raw) return { ...defaults, ...JSON.parse(raw) };
+  } catch(e) { console.error('State load error:', e); }
+  return { ...defaults };
+}
+function saveState(state) {
+  localStorage.setItem(STATE_KEY, JSON.stringify(state));
+}
+let state = loadState();
+
+// ========== v3: AUDIO ENGINE ==========
+let _audioCtx=null;
+function getAudioCtx(){if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();return _audioCtx;}
+function playSound(type){
+  if(!state.soundEnabled)return;
+  try{
+    const ctx=getAudioCtx(),osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);gain.gain.value=0.08;
+    if(type==='correct'){osc.type='sine';osc.frequency.setValueAtTime(523,ctx.currentTime);osc.frequency.setValueAtTime(659,ctx.currentTime+0.1);osc.frequency.setValueAtTime(784,ctx.currentTime+0.2);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.4);}
+    else if(type==='wrong'){osc.type='sawtooth';osc.frequency.setValueAtTime(200,ctx.currentTime);osc.frequency.linearRampToValueAtTime(100,ctx.currentTime+0.3);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.3);}
+    else if(type==='streak'){osc.type='square';osc.frequency.setValueAtTime(880,ctx.currentTime);gain.gain.setValueAtTime(0.05,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.2);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.2);}
+    else if(type==='levelup'){[523,659,784,1047].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.08,ctx.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.12+0.25);o.start(ctx.currentTime+i*0.12);o.stop(ctx.currentTime+i*0.12+0.25);});}
+  }catch(e){}
+}
+// ========== v3: CONFETTI ==========
+let _confettiParticles=[],_confettiAnimId=null;
+function triggerConfetti(){
+  const canvas=document.getElementById('confetti-canvas');if(!canvas)return;
+  const ctx=canvas.getContext('2d'),w=canvas.width=window.innerWidth,h=canvas.height=window.innerHeight;
+  const colors=['#6366f1','#818cf8','#22c55e','#f59e0b','#ef4444','#a78bfa','#f97316','#06b6d4'];
+  const count=state.streak>=10?120:state.streak>=5?80:40;
+  for(let i=0;i<count;i++)_confettiParticles.push({x:w/2+(Math.random()-0.5)*200,y:h/2,vx:(Math.random()-0.5)*12,vy:-Math.random()*14-4,color:colors[Math.floor(Math.random()*colors.length)],size:Math.random()*8+3,rot:Math.random()*360,rotV:(Math.random()-0.5)*15,life:1,decay:0.008+Math.random()*0.015,shape:Math.random()>0.5?'rect':'circle'});
+  if(!_confettiAnimId){(function anim(){ctx.clearRect(0,0,w,h);_confettiParticles=_confettiParticles.filter(p=>p.life>0);
+    for(const p of _confettiParticles){p.x+=p.vx;p.y+=p.vy;p.vy+=0.2;p.rot+=p.rotV;p.life-=p.decay;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.globalAlpha=p.life;ctx.fillStyle=p.color;if(p.shape==='rect')ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);else{ctx.beginPath();ctx.arc(0,0,p.size/2,0,Math.PI*2);ctx.fill();}ctx.restore();}
+    _confettiParticles.length>0?(_confettiAnimId=requestAnimationFrame(anim)):(_confettiAnimId=null);})();}
+}
+// ========== v3: COMBO POPUP ==========
+function showComboPopup(streak){if(streak<3)return;const el=document.createElement('div');el.className='combo-popup';const msgs={3:'🔥 三连击！',5:'⚡ 五连击！！',7:'💥 七连击！！！',10:'👑 十连绝世！！',15:'🌟 超神了！！！',20:'🚀 无人能挡！！'};let t='';for(const[k,v]of Object.entries(msgs).sort((a,b)=>b[0]-a[0])){if(streak>=parseInt(k)){t=v;break;}}el.textContent=t||'🔥 '+streak+'连击！';document.body.appendChild(el);el.addEventListener('animationend',()=>el.remove());}
+// ========== v3: XP & LEVEL ==========
+function xpForLevel(lv){return Math.floor(100*Math.pow(1.5,lv-1));}
+function addXP(amount){state.xp+=amount;if(state.xp>=xpForLevel(state.level)){state.xp-=xpForLevel(state.level);state.level++;playSound('levelup');setTimeout(()=>{const b=document.querySelector('.level-badge');if(b){b.classList.add('level-up-anim');b.addEventListener('animationend',()=>b.classList.remove('level-up-anim'));}},50);}}
+// ========== v3: BACKGROUND PARTICLES ==========
+let _bgParticles=[];
+function initParticles(){const canvas=document.getElementById('particles-canvas');if(!canvas)return;const ctx=canvas.getContext('2d');canvas.width=window.innerWidth;canvas.height=window.innerHeight;for(let i=0;i<50;i++)_bgParticles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*2+0.5,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3});(function anim(){ctx.clearRect(0,0,canvas.width,canvas.height);for(const p of _bgParticles){p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=canvas.width;if(p.x>canvas.width)p.x=0;if(p.y<0)p.y=canvas.height;if(p.y>canvas.height)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(99,102,241,0.3)';ctx.fill();}requestAnimationFrame(anim);})();window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});}
+// ========== v4: COUNTDOWN TIMER (0.1s precision, 10s limit) ==========
+let _questionStartTime=0,_timerInterval=null,_isPaused=false,_pauseStartTime=0,_totalPausedTime=0;
+function startTimer(){_questionStartTime=Date.now();_isPaused=false;_totalPausedTime=0;if(_timerInterval)clearInterval(_timerInterval);updateTimerDisplay();_timerInterval=setInterval(updateTimerDisplay,100);}
+function updateTimerDisplay(){const el=document.getElementById('timerDisplay');const btn=document.getElementById('pauseBtn');if(!el)return;if(_isPaused){el.textContent='⏸ 已暂停';el.className='countdown-timer paused-text';return;}const elapsed=(Date.now()-_questionStartTime-_totalPausedTime)/1000;const remaining=Math.max(0,10-elapsed);el.textContent=remaining.toFixed(1)+'s';if(remaining<=0){el.className='countdown-timer overtime';el.textContent='⏰ 超时';}else if(remaining<=3){el.className='countdown-timer danger';}else if(remaining<=5){el.className='countdown-timer warning';}else{el.className='countdown-timer';}}
+function pauseTimer(){if(!_isPaused){_isPaused=true;_pauseStartTime=Date.now();updateTimerDisplay();const pb=document.getElementById('pauseBtn');if(pb){pb.textContent='▶ 继续';pb.className='pause-btn paused';}document.querySelectorAll('.option-btn:not(.disabled)').forEach(b=>b.classList.add('pause-disabled'));}}
+function resumeTimer(){if(!_isPaused)return;_isPaused=false;_totalPausedTime+=Date.now()-_pauseStartTime;updateTimerDisplay();if(_timerInterval)clearInterval(_timerInterval);_timerInterval=setInterval(updateTimerDisplay,100);const pb=document.getElementById('pauseBtn');if(pb){pb.textContent='⏯ 暂停';pb.className='pause-btn';}document.querySelectorAll('.option-btn.pause-disabled').forEach(b=>b.classList.remove('pause-disabled'));}
+function togglePause(){if(_isPaused){resumeTimer();}else{pauseTimer();}}
+function getElapsed(){return Date.now()-_questionStartTime-_totalPausedTime;}
+function stopTimer(qid){if(_timerInterval){clearInterval(_timerInterval);_timerInterval=null;}const elapsed=getElapsed();state.questionTimes[qid]=elapsed;const times=Object.values(state.questionTimes);state.avgTime=Math.round(times.reduce((a,b)=>a+b,0)/times.length);state.fastestTime=state.fastestTime===0?elapsed:Math.min(state.fastestTime,elapsed);saveState(state);return elapsed;}
+// ========== v3: SLIDE DIRECTION & SOUND TOGGLE ==========
+let _slideDirection='right',_advancing=false;
+function toggleSound(){state.soundEnabled=!state.soundEnabled;saveState(state);const btn=document.getElementById('soundToggleBtn');if(btn){btn.textContent=state.soundEnabled?'🔊':'🔇';btn.className='sound-toggle'+(state.soundEnabled?'':' muted');}if(state.soundEnabled){try{getAudioCtx().resume();}catch(e){}}}
+// ========== ANALYSIS ENGINE ==========
+function generateAnalysis(q) {
+  const text = q.question;
+  const answer = q.answer;
+  const correctText = Array.isArray(answer)
+    ? answer.map(a => q.options.find(o => o.letter === a)?.text || a).join('、')
+    : q.options.find(o => o.letter === answer)?.text || answer;
+
+  let analysis = '';
+  let keyPoints = [];
+
+  // Pattern-based analysis
+  if (text.includes('图灵')) {
+    analysis = '艾伦·图灵（Alan Turing）是计算机科学和人工智能的先驱。';
+    if (text.includes('1950')) keyPoints.push('图灵于1950年发表《计算机器与智能》（Computing Machinery and Intelligence），首次提出"机器能思考吗？"');
+    if (text.includes('30%')) keyPoints.push('图灵测试标准：超过30%的测试者无法区分人与机器，则机器被认为具有智能');
+    if (text.includes('读写头') || text.includes('控制器') || text.includes('卡带')) keyPoints.push('图灵机由三部分组成：读写头（读写符号）、控制器（状态转换规则）、无限长纸带（存储），仿真器不属于图灵机组件');
+  }
+  if (text.includes('低谷') || text.includes('低潮')) {
+    analysis = '人工智能发展历程经历了繁荣与低谷的交替。';
+    keyPoints.push('AI经历两次低谷：第一次（1970s）因感知机局限性暴露；第二次（1980s末）因专家系统局限性显现');
+  }
+  if (text.includes('人工智能') && text.includes('诞生') || text.includes('达特茅斯')) {
+    analysis = '"人工智能"这一术语的诞生标志着AI作为独立学科的起点。';
+    keyPoints.push('1956年，达特茅斯会议（Dartmouth Workshop）上，约翰·麦卡锡首次提出"Artificial Intelligence"一词');
+  }
+  if (text.includes('摩尔定律') || text.includes('PC芯片')) {
+    keyPoints.push('摩尔定律（Moore\'s Law）：集成电路上可容纳的晶体管数目约每18个月翻一番，性能提升一倍');
+  }
+  if (text.includes('专家系统')) {
+    analysis = '专家系统是符号主义AI的典型应用，通过规则库和推理机模拟人类专家的决策过程。';
+    keyPoints.push('专家系统诞生于第二次AI崛起（1980s），属于符号主义学派，代表系统如MYCIN（医疗诊断）、DENDRAL（化学分析）');
+  }
+  if (text.includes('三大学派') || text.includes('符号主义') || text.includes('连接主义') || text.includes('行为主义')) {
+    analysis = '人工智能三大学派分别从不同角度探索智能的本质。';
+    keyPoints.push('符号主义（Symbolism）：源于数理逻辑，主张功能模拟，代表：专家系统、知识图谱');
+    keyPoints.push('连接主义（Connectionism）：源于仿生学/人脑模型，主张结构设计，代表：感知机、深度学习');
+    keyPoints.push('行为主义（Behaviorism）：源于控制论，主张反馈进化，代表：强化学习、机器人');
+  }
+  if (text.includes('感知机') || text.includes('感知器') && text.includes('明斯基')) {
+    keyPoints.push('1969年，明斯基和派珀特在《感知器》中证明单层感知机无法解决XOR等线性不可分问题，导致第一次AI寒冬');
+  }
+  if (text.includes('AlphaGo') || text.includes('围棋')) {
+    keyPoints.push('2016年AlphaGo以4:1战胜李世石，标志着第三次AI崛起，深度学习+强化学习+蒙特卡洛树搜索的胜利');
+  }
+  if (text.includes('深度学习') && text.includes('代表性成果')) {
+    keyPoints.push('深度学习是连接主义学派的代表成果，通过多层神经网络自动学习特征表示');
+  }
+  if (text.includes('知识图谱') && text.includes('代表性成果')) {
+    keyPoints.push('知识图谱是符号主义学派的代表成果，通过实体-关系-实体三元组结构化表示知识');
+  }
+  if (text.includes('AlexNet') || text.includes('GoogLeNet') || text.includes('ResNet')) {
+    keyPoints.push('深度学习经典模型时间线：AlexNet(2012)→GoogLeNet(2014)→ResNet(2015)，AlexNet最早提出并引爆深度学习革命');
+  }
+  if (text.includes('GPT') || text.includes('OpenAI')) {
+    keyPoints.push('GPT系列：GPT-1(2018, 1.17亿参数)→GPT-2(2019, 15亿参数)→GPT-3(2020, 1750亿参数)→ChatGPT(2022)');
+  }
+  if (text.includes('BERT')) {
+    keyPoints.push('BERT(2018)由Google提出，是首个基于Transformer双向编码的预训练模型，早于GPT-2等后续大模型');
+  }
+  if (text.includes('三元空间') || text.includes('新一代人工智能')) {
+    keyPoints.push('新一代AI"三元空间"：人类社会空间(人类)、物理空间(物理)、信息网络空间(信息)，不包括仿生学');
+  }
+  if (text.includes('2020') && text.includes('大模型')) {
+    keyPoints.push('2020年GPT-3发布，中国进入大模型快速发展期，涌现出MOSS、GLM、WeLM等国产大模型');
+  }
+  if (text.includes('DeepSeek')) {
+    keyPoints.push('DeepSeek系列：V系列(V2/V3)专注通用能力，R系列(R1)强调推理与思维链(Chain-of-Thought)');
+    keyPoints.push('DeepSeek是国产开源大模型，不是完全闭源，在推理能力上与GPT-4、Claude相当');
+  }
+  if (text.includes('人机混合智能')) {
+    keyPoints.push('人机混合智能：人类提供抽象思维、形象思维、直觉思维；机器提供逻辑推理、快速推断、多模态感知');
+    keyPoints.push('人类不提供"幻觉思维"（发散空想），机器不提供"情绪情感"和"决策价值判断"');
+  }
+  if (text.includes('群体智能') || text.includes('群体智慧')) {
+    keyPoints.push('群体智慧（Wisdom of Crowds）由英国统计学家高尔顿(Francis Galton)提出，群体判断往往优于个体甚至专家');
+  }
+  if (text.includes('神经元') || text.includes('轴突') || text.includes('树突') || text.includes('突触')) {
+    keyPoints.push('神经元结构：树突（接受刺激/输入）→ 细胞体（整合信号）→ 轴突（传出信号/输出）');
+    keyPoints.push('人脑约860亿神经元，约100万亿突触连接。突触是神经元间信息传递的关键结构');
+  }
+  if (text.includes('灰质') || text.includes('白质')) {
+    keyPoints.push('灰质：大脑皮层(2-3mm厚)，神经元胞体集中区，是一切智能的来源地');
+    keyPoints.push('白质：皮层下方，轴突集中区，是大脑的"通信网络"');
+  }
+  if (text.includes('枕叶') || text.includes('视觉皮层')) {
+    keyPoints.push('大脑四叶：额叶(运动/思维)、顶叶(感觉/空间)、颞叶(听觉/记忆)、枕叶(视觉)，视觉皮层V1位于枕叶');
+  }
+  if (text.includes('腹侧') || text.includes('背侧') || text.includes('what') || text.includes('where')) {
+    keyPoints.push('视觉双通路：腹侧通路(what)识别物体身份→颞叶；背侧通路(where)定位空间位置→顶叶');
+  }
+  if (text.includes('Broca') || text.includes('Wernicke')) {
+    keyPoints.push('语言处理双中心：Broca区(语法加工/语言产生)位于额叶左下回，Wernicke区(语义理解)位于颞上回后部');
+  }
+  if (text.includes('海马体') || text.includes('长时记忆') || text.includes('短时记忆')) {
+    keyPoints.push('记忆分类：感觉记忆(毫秒-秒)→短时记忆(秒-分钟，需复述维持)→长时记忆(天-年)');
+    keyPoints.push('海马体是记忆形成的关键结构，负责将短时记忆巩固为长时记忆');
+  }
+  if (text.includes('杏仁核') || text.includes('情绪')) {
+    keyPoints.push('杏仁核是情绪处理的核心脑区，特别是恐惧和焦虑反应，属于边缘系统');
+  }
+  if (text.includes('脑解码') || text.includes('脑机接口')) {
+    keyPoints.push('脑解码：从大脑神经活动信号中解码出特定心理状态/感知/行为信息');
+    keyPoints.push('脑机接口(BCI)：在大脑与外部设备之间建立通信和控制通道');
+  }
+  if (text.includes('类脑计算')) {
+    keyPoints.push('类脑计算：借鉴大脑结构和功能原理，设计新型计算架构和算法，如脉冲神经网络(SNN)');
+  }
+  if (text.includes('霍普菲尔德') || text.includes('Hopfield')) {
+    keyPoints.push('1982年Hopfield网络引入能量函数概念，通过收敛到局部最小值实现联想记忆，复兴了神经网络研究');
+  }
+  if (text.includes('反向传播') || text.includes('BP算法') || text.includes('误差反向')) {
+    keyPoints.push('反向传播(BP)算法：通过链式法则将输出层误差逐层反向传播，更新权重，是深度学习的核心训练算法');
+  }
+  if (text.includes('CNN') || text.includes('卷积') || text.includes('卷积神经')) {
+    keyPoints.push('CNN三大特性：局部感受野(局部连接)、权值共享(卷积核)、池化(下采样)，有效提取空间特征');
+  }
+  if (text.includes('RNN') || text.includes('循环神经')) {
+    keyPoints.push('RNN擅长处理序列数据，通过隐藏状态传递时序信息，但存在梯度消失/爆炸问题');
+  }
+  if (text.includes('LSTM') || text.includes('长短期记忆')) {
+    keyPoints.push('LSTM通过门控机制(遗忘门、输入门、输出门)解决RNN的长程依赖问题');
+  }
+  if (text.includes('Transformer') || text.includes('自注意力') || text.includes('Self-Attention')) {
+    keyPoints.push('Transformer(2017)：基于自注意力机制，抛弃RNN的循环结构，支持并行化训练，是现代大模型的基础架构');
+  }
+  if (text.includes('GAN') || text.includes('生成对抗')) {
+    keyPoints.push('GAN由生成器和判别器组成，通过对抗训练生成逼真数据，在图像生成、风格迁移等领域广泛应用');
+  }
+  if (text.includes('强化学习') || text.includes('Q-learning')) {
+    keyPoints.push('强化学习框架：Agent通过与环境交互，根据奖励信号学习最优策略。Q-learning是经典的无模型RL算法');
+  }
+  if (text.includes('过拟合') || text.includes('Overfitting')) {
+    keyPoints.push('过拟合：模型在训练集表现好但在测试集表现差。解决方法：正则化(L1/L2)、Dropout、早停、数据增广');
+  }
+  if (text.includes('梯度消失') || text.includes('梯度爆炸')) {
+    keyPoints.push('梯度消失/爆炸：深层网络中梯度在反向传播时指数级衰减或增长。解决方法：ReLU激活函数、BatchNorm、残差连接');
+  }
+  if (text.includes('激活函数')) {
+    keyPoints.push('常见激活函数：Sigmoid(输出0-1，易梯度消失)、ReLU(max(0,x)，缓解梯度消失)、Tanh(输出-1到1)');
+  }
+  if (text.includes('Dropout')) {
+    keyPoints.push('Dropout是正则化技术，训练时随机丢弃部分神经元，防止过拟合，相当于隐式的模型集成');
+  }
+  if (text.includes('Batch') && text.includes('Normalization')) {
+    keyPoints.push('Batch Normalization：对每层输入进行归一化，加速训练、允许更大学习率、缓解梯度问题');
+  }
+  if (text.includes('注意力') && !text.includes('自我') && !text.includes('Self')) {
+    keyPoints.push('注意力机制(Attention)：让模型关注输入中的重要部分，最初用于机器翻译，是Transformer的核心组件');
+  }
+  if (text.includes('预训练') || text.includes('微调')) {
+    keyPoints.push('预训练+微调范式：先在大规模语料上预训练通用语言模型，再在下游任务上微调，大幅降低标注需求');
+  }
+  if (text.includes('Prompt') || text.includes('提示学习')) {
+    keyPoints.push('提示学习(Prompt Learning)：通过设计精巧的提示模板，将下游任务转化为预训练任务的形式');
+  }
+  if (text.includes('RLHF') || text.includes('人类反馈')) {
+    keyPoints.push('RLHF(人类反馈强化学习)：通过人类偏好标注训练奖励模型，再用PPO等算法优化语言模型，是ChatGPT的关键技术');
+  }
+  if (text.includes('多模态') || text.includes('CLIP')) {
+    keyPoints.push('多模态学习：融合文本、图像、语音等多种模态信息。CLIP(2021)实现了文本-图像的联合表示学习');
+  }
+  if (text.includes('灾难性遗忘') || text.includes('Catastrophic')) {
+    keyPoints.push('灾难性遗忘：模型在学习新任务时遗忘旧知识。解决方法：弹性权重巩固(EWC)、渐进式网络、记忆回放');
+  }
+  if (text.includes('对抗样本') || text.includes('对抗攻击')) {
+    keyPoints.push('对抗样本：在原始输入上添加微小扰动(人眼不可察觉)，导致模型输出错误。暴露了深度模型的脆弱性');
+  }
+  if (text.includes('可解释性') || text.includes('黑箱')) {
+    keyPoints.push('AI可解释性：理解模型决策过程和依据。方法包括LIME、SHAP、注意力可视化、概念激活向量等');
+  }
+  if (text.includes('公平性') && text.includes('偏见')) {
+    keyPoints.push('AI公平性：确保模型决策不因种族、性别等敏感属性产生歧视。训练数据历史偏见是主要源头');
+  }
+  if (text.includes('隐私') && text.includes('数据')) {
+    keyPoints.push('AI隐私保护：联邦学习(数据不出本地)、差分隐私(添加噪声)、同态加密(密文计算)是核心技术');
+  }
+  if (text.includes('模型窃取') || text.includes('成员推断')) {
+    keyPoints.push('AI安全攻击：模型窃取(通过API复制模型)、成员推断(判断数据是否在训练集中)、模型反演(从模型恢复训练数据)');
+  }
+  if (text.includes('检索增强生成') || text.includes('RAG')) {
+    keyPoints.push('RAG(检索增强生成)：结合外部知识库检索与生成模型，减少幻觉、提高事实准确性');
+  }
+  if (text.includes('幻觉') || text.includes('Hallucination')) {
+    keyPoints.push('模型幻觉(Hallucination)：生成看似合理但事实错误的内容。RAG、事实核查、知识图谱约束是缓解方法');
+  }
+  if (text.includes('超级对齐') || text.includes('Superalignment')) {
+    keyPoints.push('超级对齐(Superalignment)：研究如何确保未来超越人类的AI系统仍然与人类价值观和目标保持一致');
+  }
+  if (text.includes('多智能体') || text.includes('Multi-Agent')) {
+    keyPoints.push('多智能体系统：多个AI Agent通过协作、竞争、协商完成复杂任务，模拟社会智能');
+  }
+  if (text.includes('M-P模型') || text.includes('McCulloch')) {
+    keyPoints.push('1943年McCulloch和Pitts提出M-P神经元模型，是第一个人工神经元数学模型，奠定了神经网络的理论基础');
+  }
+
+  // Generic fallback
+  if (!analysis && keyPoints.length === 0) {
+    analysis = '本题考查' + (text.includes('以下') ? '对' + text.split('以下')[0].trim() + '的理解' : '人工智能导论课程的核心知识点') + '。';
+    keyPoints.push('正确答案是' + correctText + '。请结合教材和课堂内容理解相关概念。');
+  }
+
+  return { analysis, keyPoints };
+}
+
+// ========== RENDER ==========
+let currentView = 'practice';
+let filteredQuestions = [...ALL_QUESTIONS];
+
+function prepareQuestions() {
+  let qs = [...ALL_QUESTIONS];
+  if (state.filter === 'wrong') {
+    qs = qs.filter(q => state.wrongIds.includes(q.id));
+  } else if (state.filter === 'unanswered') {
+    qs = qs.filter(q => !state.answered[q.id]);
+  } else if (state.filter === 'remaining') {
+    // wrong + unanswered
+    qs = qs.filter(q => state.wrongIds.includes(q.id) || !state.answered[q.id]);
+  }
+  
+  if (state.mode === 'random') {
+    // Fisher-Yates shuffle
+    for (let i = qs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [qs[i], qs[j]] = [qs[j], qs[i]];
+    }
+  }
+  return qs;
+}
+
+function ensureValidIndex() {
+  if (state.currentIndex >= filteredQuestions.length) state.currentIndex = 0;
+  if (state.currentIndex < 0) state.currentIndex = Math.max(0, filteredQuestions.length - 1);
+}
+
+function render() {
+  updateBadges();
+  switch(currentView) {
+    case 'practice': renderPractice(); break;
+    case 'wrong': renderWrongNotebook(); break;
+    case 'stats': renderStats(); break;
+  }
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === currentView);
+  });
+  if(currentView==='practice'&&filteredQuestions.length>0&&!state.answered[filteredQuestions[state.currentIndex]?.id]){startTimer();}
+}
+
+function updateBadges() {
+  const badge = document.getElementById('wrongBadge');
+  if (state.wrongIds.length > 0) {
+    badge.style.display = 'inline';
+    badge.textContent = state.wrongIds.length;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderPractice() {
+  filteredQuestions = prepareQuestions();
+  ensureValidIndex();
+
+  let html = '';
+  // Header
+  const total = ALL_QUESTIONS.length;
+  const completed = Object.keys(state.answered).length;
+  const correct = Object.values(state.answered).filter(v => v === 'correct').length;
+  html += '<div class="header"><h1 class="header-title">📝 题目练习</h1>';
+  html += '<div><span style="font-size:13px;color:var(--text-secondary);">进度 ' + completed + '/' + total + '</span>';
+  html += '<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:' + (completed/total*100) + '%"></div></div></div></div>';
+
+  // Stats row
+  html += '<div class="stats-row">';
+  html += '<div class="stat-card"><div class="stat-icon">📋</div><div><div class="stat-value">' + completed + '</div><div class="stat-label">已完成</div></div></div>';
+  html += '<div class="stat-card"><div class="stat-icon">✅</div><div><div class="stat-value">' + correct + '</div><div class="stat-label">正确</div></div></div>';
+  html += '<div class="stat-card"><div class="stat-icon">📕</div><div><div class="stat-value">' + state.wrongIds.length + '</div><div class="stat-label">错题</div></div></div>';
+  const acc = completed > 0 ? Math.round(correct / completed * 100) : '-';
+  html += '<div class="stat-card"><div class="stat-icon">🎯</div><div><div class="stat-value">' + acc + (acc === '-' ? '' : '%') + '</div><div class="stat-label">正确率</div></div></div>';
+  html += '<div class="stat-card"><div class="stat-icon">⭐</div><div><div class="stat-value">Lv.' + state.level + '</div><div class="stat-label">等级 · ' + state.xp + '/' + xpForLevel(state.level) + ' XP</div></div></div>';
+  html += '</div>';
+  html += '<div class="xp-bar-wrap"><div class="xp-bar"><div class="xp-bar-fill" style="width:' + (state.xp / xpForLevel(state.level) * 100) + '%"></div></div><span class="xp-label">⚡ ' + state.xp + ' / ' + xpForLevel(state.level) + '</span></div>';
+
+  // Settings
+  html += '<div class="settings-bar">';
+  html += '<span class="setting-label">模式：</span>';
+  html += '<select class="setting-select" id="modeSelect" onchange="changeMode(this.value)">';
+  html += '<option value="sequential"' + (state.mode === 'sequential' ? ' selected' : '') + '>顺序练习</option>';
+  html += '<option value="random"' + (state.mode === 'random' ? ' selected' : '') + '>随机练习</option>';
+  html += '</select>';
+  html += '<span class="setting-label">筛选：</span>';
+  html += '<select class="setting-select" id="filterSelect" onchange="changeFilter(this.value)">';
+  html += '<option value="all"' + (state.filter === 'all' ? ' selected' : '') + '>全部题目</option>';
+  html += '<option value="unanswered"' + (state.filter === 'unanswered' ? ' selected' : '') + '>未做题</option>';
+  html += '<option value="wrong"' + (state.filter === 'wrong' ? ' selected' : '') + '>只做错题</option>';
+  html += '<option value="remaining"' + (state.filter === 'remaining' ? ' selected' : '') + '>未做+错题</option>';
+  html += '</select>';
+  html += '<button class="btn btn-outline btn-sm" onclick="jumpToQuestion()">🔍 跳转题号</button>';html += '<button class="btn btn-outline btn-sm" onclick="restartPractice()" style="background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:var(--success);">🔄 重新练习</button>';
+  html += '<label style="display:flex;align-items:center;gap:8px;margin-left:12px;cursor:pointer;font-size:13px;color:var(--text-secondary);">';
+  html += '<input type="checkbox" id="autoAdvanceToggle" onchange="toggleAutoAdvance(this.checked)" ' + (state.autoAdvance ? 'checked' : '') + ' style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer;">';
+  html += '答对自动下一题</label>';
+  html += '<button class="sound-toggle" id="soundToggleBtn" onclick="toggleSound()" title="音效开关" style="margin-left:auto;">' + (state.soundEnabled ? '🔊' : '🔇') + '</button>';
+  html += '</div>';
+
+  // Question
+  if (filteredQuestions.length === 0) {
+    html += '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">太棒了！</div><p>当前筛选条件下没有题目了，切换筛选或开始新一轮练习吧。</p></div>';
+  } else {
+    const q = filteredQuestions[state.currentIndex];
+    const prevAnswer = state.answered[q.id];
+
+    html += '<div class="question-card fade-in ' + (_slideDirection === 'right' ? 'slide-in-right' : 'slide-in-left') + '">';
+    if(state.streak>=2){const sc=state.streak>=15?'godlike':state.streak>=8?'fire':state.streak>=4?'hot':'';html+='<div class="streak-display '+sc+'" style="margin-bottom:12px;">🔥 '+state.streak+' 连击！</div>';}
+  html+='<div class="countdown-wrap-top"><span class="countdown-label">⏱ 答题倒计时</span><div class="countdown-timer" id="timerDisplay">10.0s</div><button class="pause-btn" id="pauseBtn" onclick="event.stopPropagation();togglePause();">⏯ 暂停</button></div>';
+  html += '<div class="q-header">';
+    html += '<div><div class="q-number">第 ' + (state.currentIndex + 1) + ' / ' + filteredQuestions.length + ' 题 · 题库编号 #' + q.id + '</div></div>';
+    const typeLabel = q.type === 'multi' ? '多选题' : q.type === 'bool' ? '判断题' : '单选题';
+    const typeClass = q.type === 'multi' ? 'multi' : q.type === 'bool' ? 'bool' : '';
+    html += '<div class="q-type-badge ' + typeClass + '">' + typeLabel + '</div>';
+    html += '</div>';
+
+    html += '<div class="q-text">' + q.question + '</div>';
+
+    // Options
+    html += '<div class="options-list">';
+    const isMulti = q.type === 'multi';
+    var isAnswered = !!prevAnswer;
+    for (const opt of q.options) {
+      let optClass = '';
+      if (isAnswered) {
+        const correctAnswers = Array.isArray(q.answer) ? q.answer : [q.answer];
+        const storedChoice = state.userChoices[q.id];
+        const userAnswers = storedChoice ? (Array.isArray(storedChoice) ? storedChoice : [storedChoice]) : [];
+        if (correctAnswers.includes(opt.letter) && userAnswers.includes(opt.letter)) optClass = 'correct';
+        else if (correctAnswers.includes(opt.letter)) optClass = 'correct';
+        else if (userAnswers.includes(opt.letter)) optClass = 'wrong';
+        optClass += ' disabled';
+      }
+      html += '<button class="option-btn' + optClass + '" onclick="selectOption(\'' + opt.letter + '\')" ' + (isAnswered ? 'disabled' : '') + '>';
+      html += '<span class="letter">' + opt.letter + '</span>';
+      html += '<span>' + opt.text + '</span>';
+      html += '</button>';
+    }
+    if (isMulti && !isAnswered) {
+      html += '<button class="btn btn-primary" style="margin-top:12px;width:fit-content;" onclick="submitMulti()">提交多选答案</button>';
+      html += '<span style="font-size:12px;color:var(--text-secondary);margin-left:12px;">点击选项选中/取消，然后提交</span>';
+    }
+    html += '</div>';
+
+    // Result
+    if (isAnswered) {
+      const isCorrect = prevAnswer === 'correct';
+      html += '<div class="result-box show ' + (isCorrect ? 'correct' : 'wrong') + '">';
+      if (isCorrect) {
+        const emojis = ['🎉', '🌟', '🔥', '💪', '✨', '👏', '🏆', '🚀', '💯', '🎯', '⭐', '🦾'];
+        const msgs = ['太棒了！', '完全正确！', '厉害了！', '优秀！', '满分回答！', '稳准狠！', '知识达人！', '一击必中！', '实力碾压！', '轻松拿下！'];
+        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+        const msg = msgs[Math.floor(Math.random() * msgs.length)];
+        const moods = ['great', 'wow', 'fire'];
+        const mood = moods[Math.floor(Math.random() * moods.length)];
+        html += '<div class="encourage-msg ' + mood + '"><span class="bounce">' + emoji + '</span> ' + msg + '</div>';
+      } else {
+        html += '<div class="encourage-msg" style="color:var(--error);">💡 没关系，记住它！</div>';
+      }
+      html += '<div class="result-title">' + (isCorrect ? '✅ 回答正确' : '❌ 回答错误') + '</div>';
+      html += '<p style="font-size:14px;color:var(--text-secondary);">正确答案：<b style="color:var(--text);">' + getCorrectAnswerText(q) + '</b></p>';
+      // Countdown bar on correct with auto-advance enabled
+      if (isCorrect && state.autoAdvance && state.currentIndex < filteredQuestions.length - 1) {
+        html += '<div class="countdown-wrap">';
+        html += '<div class="countdown-bar"><div class="countdown-fill running" onanimationend="onAdvanceAnimEnd()"></div></div>';
+        html += '<span class="countdown-text">1.5s 后自动跳转</span>';
+        html += '<button class="btn btn-sm btn-outline" onclick="skipAdvance()" style="padding:4px 12px;font-size:12px;flex-shrink:0;">⏭ 跳过</button>';
+        html += '</div>';
+      }
+      html += '</div>';
+
+      // Analysis
+      const analysis = generateAnalysis(q);
+      html += '<div class="analysis-box show">';
+      html += '<div class="analysis-title">💡 创意解析</div>';
+      html += '<div class="analysis-content">';
+      if (analysis.analysis) html += '<p>' + analysis.analysis + '</p>';
+      for (const kp of analysis.keyPoints) {
+        html += '<span class="key-point">📌 ' + kp + '</span>';
+      }
+      html += '</div></div>';
+    }
+
+    // Navigation
+    html += '<div class="actions-row">';
+    html += '<button class="btn btn-secondary" onclick="prevQuestion()" ' + (state.currentIndex === 0 ? 'disabled' : '') + '>⬅ 上一题</button>';
+    html += '<button class="btn btn-primary" onclick="nextQuestion()">下一题 ➡</button>';
+    if (isAnswered) {
+      html += '<button class="btn btn-outline" onclick="retryQuestion()">🔄 重做本题</button>';
+    }
+    html += '</div>';
+    html += '</div>';
+  }
+
+  document.getElementById('mainContent').innerHTML = html;
+  // Update pause button state
+  const pb=document.getElementById('pauseBtn');if(pb){pb.textContent=_isPaused?'▶ 继续':'⏯ 暂停';pb.className='pause-btn'+(_isPaused?' paused':'');}
+  // Disable/enable option buttons when paused
+  if(_isPaused){document.querySelectorAll('.option-btn').forEach(b=>b.classList.add('pause-disabled'));}
+
+  // Handle multi-select state
+  if (!isAnswered) {
+    window._multiSelected = window._multiSelected || {};
+  } else {
+    window._multiSelected = {};
+  }
+}
+
+let _multiSelected = {};
+let _advanceGate = 0; // incremented on each answer to prevent stale callbacks
+
+function cancelAdvance() {
+  _advanceGate++; // invalidate any pending advance
+}
+
+// Called by CSS animationend on the countdown bar
+function onAdvanceAnimEnd() {
+  if(_advancing)return;
+  if (state.currentIndex < filteredQuestions.length - 1) {
+    _advancing=true;
+    _advanceGate++; // prevent setTimeout backup
+    state.currentIndex++;
+    _multiSelected = {};
+    _slideDirection = 'right';
+    saveState(state);
+    render();
+    setTimeout(()=>{_advancing=false;},300);
+    startTimer();
+  }
+}
+
+function skipAdvance() {
+  cancelAdvance();
+  if (state.currentIndex < filteredQuestions.length - 1) {
+    state.currentIndex++;
+  }
+  _multiSelected = {};
+  _slideDirection = 'right';
+  saveState(state);
+  render();
+  startTimer();
+}
+
+function selectOption(letter) {
+  if(_isPaused)return;
+  const q = filteredQuestions[state.currentIndex];
+  if (q.type === 'multi') {
+    if (_multiSelected[letter]) {
+      delete _multiSelected[letter];
+      document.querySelectorAll('.option-btn').forEach(b => {
+        if (b.querySelector('.letter').textContent === letter) b.classList.remove('selected');
+      });
+    } else {
+      _multiSelected[letter] = true;
+      document.querySelectorAll('.option-btn').forEach(b => {
+        if (b.querySelector('.letter').textContent === letter) b.classList.add('selected');
+      });
+    }
+  } else {
+    // Single select - directly answer
+    const userAnswer = letter;
+    const correctAnswer = q.answer;
+    const isCorrect = Array.isArray(correctAnswer)
+      ? correctAnswer.includes(userAnswer)
+      : userAnswer === correctAnswer;
+    stopTimer(q.id);
+    if(isCorrect){state.streak++;if(state.streak>state.maxStreak)state.maxStreak=state.streak;playSound('correct');triggerConfetti();if(state.streak>=3)setTimeout(()=>showComboPopup(state.streak),100);addXP(Math.max(0,10+Math.min(state.streak*2,20)+Math.floor(Math.max(0,10-getElapsed()/1000)*2)));}else{state.streak=0;playSound('wrong');}
+    state.answered[q.id] = isCorrect ? 'correct' : 'wrong';state.userChoices[q.id] = userAnswer;
+    if (!isCorrect && !state.wrongIds.includes(q.id)) {
+      state.wrongIds.push(q.id);
+      state.wrongCount[q.id] = (state.wrongCount[q.id] || 0) + 1;
+    }
+    if (isCorrect && state.wrongIds.includes(q.id)) {
+      state.wrongIds = state.wrongIds.filter(id => id !== q.id);
+    }
+    saveState(state);
+    render();
+    // Auto-advance: gate-based, triggered by CSS animationend (or setTimeout backup)
+    if (isCorrect && state.autoAdvance && filteredQuestions[state.currentIndex]?.id === q.id && state.currentIndex < filteredQuestions.length - 1) {
+      const gate = ++_advanceGate;
+      setTimeout(() => {
+        if (gate !== _advanceGate) return; // cancelled
+        state.currentIndex++;
+        _multiSelected = {};
+        saveState(state);
+        render();
+        startTimer();
+      }, 1500);
+    }
+  }
+}
+
+function submitMulti() {
+  if(_isPaused)return;
+  const q = filteredQuestions[state.currentIndex];
+  const selected = Object.keys(_multiSelected).sort();
+  if (selected.length === 0) return;
+  const correctAnswer = Array.isArray(q.answer) ? [...q.answer].sort() : [q.answer];
+  const isCorrect = JSON.stringify(selected) === JSON.stringify(correctAnswer);
+  stopTimer(q.id);
+  if(isCorrect){state.streak++;if(state.streak>state.maxStreak)state.maxStreak=state.streak;playSound('correct');triggerConfetti();if(state.streak>=3)setTimeout(()=>showComboPopup(state.streak),100);addXP(Math.max(0,15+Math.min(state.streak*3,30)+Math.floor(Math.max(0,10-getElapsed()/1000)*3)));}else{state.streak=0;playSound('wrong');}
+  state.answered[q.id] = isCorrect ? 'correct' : 'wrong';state.userChoices[q.id] = Object.keys(_multiSelected).sort();
+  if (!isCorrect && !state.wrongIds.includes(q.id)) {
+    state.wrongIds.push(q.id);
+    state.wrongCount[q.id] = (state.wrongCount[q.id] || 0) + 1;
+  }
+  if (isCorrect && state.wrongIds.includes(q.id)) {
+    state.wrongIds = state.wrongIds.filter(id => id !== q.id);
+  }
+  _multiSelected = {};
+  saveState(state);
+  render();
+  // Auto-advance on correct
+  if (isCorrect && state.autoAdvance && filteredQuestions[state.currentIndex]?.id === q.id && state.currentIndex < filteredQuestions.length - 1) {
+    const gate = ++_advanceGate;
+    setTimeout(() => {
+      if (gate !== _advanceGate) return; // cancelled
+      state.currentIndex++;
+      _multiSelected = {};
+      saveState(state);
+      render();
+    }, 500);
+  }
+}
+
+function getCorrectAnswerText(q) {
+  if (Array.isArray(q.answer)) {
+    return q.answer.map(a => a + '. ' + (q.options.find(o => o.letter === a)?.text || '')).join('；');
+  }
+  return q.answer + '. ' + (q.options.find(o => o.letter === q.answer)?.text || '');
+}
+
+function nextQuestion() {
+  if(_advancing)return;
+  _isPaused=false;
+  cancelAdvance();
+  if (state.currentIndex < filteredQuestions.length - 1) {
+    state.currentIndex++;
+    _multiSelected = {};
+    _slideDirection = 'right';
+    saveState(state);
+    render();
+    startTimer();
+  }
+}
+
+function prevQuestion() {
+  if(_advancing)return;
+  _isPaused=false;
+  cancelAdvance();
+  if (state.currentIndex > 0) {
+    state.currentIndex--;
+    _multiSelected = {};
+    _slideDirection = 'left';
+    saveState(state);
+    render();
+    startTimer();
+  }
+}
+
+function retryQuestion() {
+  cancelAdvance();
+  const q = filteredQuestions[state.currentIndex];
+  delete state.answered[q.id];
+  delete state.userChoices[q.id];
+  state.wrongIds = state.wrongIds.filter(id => id !== q.id);
+  _multiSelected = {};
+  saveState(state);
+  render();
+  startTimer();
+}
+
+function jumpToQuestion() {
+  cancelAdvance();
+  const num = prompt('请输入题库编号（1-' + ALL_QUESTIONS.length + '）：');
+  if (!num) return;
+  const id = parseInt(num);
+  if (isNaN(id) || id < 1 || id > ALL_QUESTIONS.length) {
+    alert('无效的题号！');
+    return;
+  }
+  const idx = filteredQuestions.findIndex(q => q.id === id);
+  if (idx >= 0) {
+    state.currentIndex = idx;
+  } else {
+    // Switch to all filter
+    state.filter = 'all';
+    filteredQuestions = prepareQuestions();
+    state.currentIndex = filteredQuestions.findIndex(q => q.id === id);
+  }
+  _multiSelected = {};
+  saveState(state);
+  render();
+}
+
+function changeMode(mode) {
+  cancelAdvance();
+  state.mode = mode;
+  state.currentIndex = 0;
+  _multiSelected = {};
+  saveState(state);
+  render();
+}
+
+function changeFilter(filter) {
+  cancelAdvance();
+  state.filter = filter;
+  state.currentIndex = 0;
+  _multiSelected = {};
+  saveState(state);
+  render();
+}
+
+function toggleAutoAdvance(enabled) {
+  state.autoAdvance = enabled;
+  saveState(state);
+}
+
+// ========== WRONG NOTEBOOK ==========
+function renderWrongNotebook() {
+  let html = '<div class="header"><h1 class="header-title">📕 错题本</h1>';
+  html += '<div style="display:flex;gap:8px;"><button class="btn btn-outline btn-sm" onclick="exportWrongBook()">📥 导出错题</button><button class="btn btn-outline btn-sm" onclick="clearWrongBook()">🗑 清空错题本</button></div></div>';
+
+  if (state.wrongIds.length === 0) {
+    html += '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">错题本为空</div><p>开始练习吧，做错的题目会自动收集到这里</p></div>';
+  } else {
+    html += '<div class="wrong-list">';
+    for (const qid of state.wrongIds) {
+      const q = ALL_QUESTIONS.find(x => x.id === qid);
+      if (!q) continue;
+      const cnt = state.wrongCount[qid] || 1;
+      html += '<div class="wrong-item" onclick="goToQuestion(' + qid + ')">';
+      html += '<div class="wrong-q-num">#' + qid + '</div>';
+      html += '<div class="wrong-info">';
+      html += '<div class="wrong-q-text">' + q.question.substring(0, 80) + '...</div>';
+      html += '<div class="wrong-meta">答案：' + getCorrectAnswerText(q) + '</div>';
+      html += '</div>';
+      html += '<div class="wrong-count">做错 ' + cnt + ' 次</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  document.getElementById('mainContent').innerHTML = html;
+}
+
+function goToQuestion(qid) {
+  cancelAdvance();
+  state.filter = 'all';
+  currentView = 'practice';
+  filteredQuestions = prepareQuestions();
+  const idx = filteredQuestions.findIndex(q => q.id === qid);
+  state.currentIndex = idx >= 0 ? idx : 0;
+  _multiSelected = {};
+  saveState(state);
+  render();
+}
+
+function clearWrongBook() {
+  if (confirm('确定要清空错题本吗？此操作不可恢复。')) {
+    state.wrongIds = [];
+    state.wrongCount = {};
+    saveState(state);
+    render();
+  }
+}
+
+// ========== EXPORT WRONG BOOK ==========
+function exportWrongBook() {
+  if (state.wrongIds.length === 0) { alert('错题本为空，没有可导出的内容。'); return; }
+  let md = '# 人工智能导论 · 错题本\n\n';
+  md += '> 导出时间：' + new Date().toLocaleString('zh-CN') + ' | 共 ' + state.wrongIds.length + ' 道错题\n\n';
+  for (const qid of state.wrongIds) {
+    const q = ALL_QUESTIONS.find(x => x.id === qid);
+    if (!q) continue;
+    const cnt = state.wrongCount[qid] || 1;
+    md += '## #' + qid + '（做错 ' + cnt + ' 次）\n\n';
+    md += q.question + '\n\n';
+    const ca = Array.isArray(q.answer) ? q.answer : [q.answer];
+    for (const o of q.options) {
+      const marker = ca.includes(o.letter) ? '**[✓] ' : '[  ] ';
+      md += marker + o.letter + '. ' + o.text + '  \n';
+    }
+    md += '\n**正确答案：** ' + getCorrectAnswerText(q) + '\n\n---\n\n';
+  }
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'AI导论_错题本_' + new Date().toISOString().slice(0,10) + '.md';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ========== RESTART PRACTICE ==========
+function restartPractice() {
+  if (!confirm('确定要重新练习吗？\n\n将清除所有答题记录（已做/未做状态），但保留：\n• 错题本\n• 等级和经验\n• 连击记录\n• 答题时间统计')) return;
+  state.answered = {};
+  state.currentIndex = 0;
+  state.mode = 'sequential';
+  state.filter = 'all';
+  state.streak = 0;
+  _multiSelected = {};
+  _isPaused = false;
+  cancelAdvance();
+  saveState(state);
+  render();
+}
+
+// ========== STATS ==========
+function renderStats() {
+  const total = ALL_QUESTIONS.length;
+  const completed = Object.keys(state.answered).length;
+  const correct = Object.values(state.answered).filter(v => v === 'correct').length;
+  const wrong = completed - correct;
+  const acc = completed > 0 ? Math.round(correct / completed * 100) : 0;
+
+  let html = '<div class="header"><h1 class="header-title">📊 学习统计</h1></div>';
+
+  html += '<div class="stats-row">';
+  html += '<div class="stat-card"><div class="stat-icon">📋</div><div><div class="stat-value">' + completed + '/' + total + '</div><div class="stat-label">完成进度</div></div></div>';
+  html += '<div class="stat-card"><div class="stat-icon">🎯</div><div><div class="stat-value">' + acc + '%</div><div class="stat-label">正确率</div></div></div>';
+  html += '<div class="stat-card"><div class="stat-icon">📕</div><div><div class="stat-value">' + state.wrongIds.length + '</div><div class="stat-label">待攻克错题</div></div></div>';
+  html += '<div class="stat-card"><div class="stat-icon">✅</div><div><div class="stat-value">' + correct + '</div><div class="stat-label">已掌握</div></div></div>';
+  html += '</div>';
+  html += '<div class="stats-row">';
+  html += '<div class="stat-card"><div class="stat-icon">🔥</div><div><div class="stat-value">' + (state.maxStreak || 0) + '</div><div class="stat-label">最高连击</div></div></div>';
+  html += '<div class="stat-card"><div class="stat-icon">⏱</div><div><div class="stat-value">' + (state.avgTime ? Math.round(state.avgTime/1000) + 's' : '-') + '</div><div class="stat-label">平均用时</div></div></div>';
+  html += '<div class="stat-card"><div class="stat-icon">⚡</div><div><div class="stat-value">' + (state.fastestTime ? Math.round(state.fastestTime/1000) + 's' : '-') + '</div><div class="stat-label">最快答题</div></div></div>';
+  html += '<div class="stat-card"><div class="stat-icon">⭐</div><div><div class="stat-value">Lv.' + state.level + '</div><div class="stat-label">等级 · ' + state.xp + ' XP</div></div></div>';
+  html += '</div>';
+
+  // Topic breakdown (simple keyword-based)
+  html += '<div style="background:var(--bg-card);border-radius:var(--radius);padding:24px;border:1px solid var(--border);margin-top:20px;">';
+  html += '<h3 style="margin-bottom:16px;">📈 知识点掌握情况</h3>';
+
+  const topics = {
+    'AI历史与发展': ['图灵', '达特茅斯', '低谷', '崛起', '摩尔定律'],
+    'AI三大学派': ['符号主义', '连接主义', '行为主义', '学派', 'Symbolism', 'Connectionism', 'Behaviorism'],
+    '深度学习': ['AlexNet', 'ResNet', 'GoogLeNet', 'CNN', 'RNN', 'LSTM', 'Transformer', '卷积', '过拟合'],
+    '大模型': ['GPT', 'BERT', 'DeepSeek', '大模型', '预训练'],
+    '人机混合与群体智能': ['人机混合', '群体智能', '群体智慧'],
+    '脑科学与神经科学': ['神经元', '突触', '灰质', '白质', '枕叶', '杏仁核', '海马体', '视觉皮层', 'Broca'],
+    'AI安全与伦理': ['公平性', '隐私', '可解释性', '对抗样本', '鲁棒性', '风险', '模型窃取'],
+  };
+
+  for (const [topic, keywords] of Object.entries(topics)) {
+    const topicQs = ALL_QUESTIONS.filter(q => keywords.some(kw => q.question.includes(kw)));
+    const topicDone = topicQs.filter(q => state.answered[q.id] === 'correct').length;
+    const pct = topicQs.length > 0 ? Math.round(topicDone / topicQs.length * 100) : 0;
+    const color = pct >= 80 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--error)';
+    html += '<div style="display:flex;align-items:center;margin-bottom:12px;gap:12px;">';
+    html += '<span style="width:140px;font-size:13px;text-align:right;">' + topic + '</span>';
+    html += '<div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;">';
+    html += '<div style="height:100%;background:' + color + ';width:' + pct + '%;border-radius:4px;transition:width 0.5s;"></div>';
+    html += '</div>';
+    html += '<span style="width:50px;font-size:12px;color:' + color + ';font-weight:600;">' + pct + '%</span>';
+    html += '<span style="font-size:11px;color:var(--text-secondary);width:60px;">' + topicDone + '/' + topicQs.length + '题</span>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // Achievements
+  html += '<div style="background:var(--bg-card);border-radius:var(--radius);padding:24px;border:1px solid var(--border);margin-top:20px;">';
+  html += '<h3 style="margin-bottom:16px;">🏅 成就徽章</h3>';
+}
+
+// ========== NAVIGATION ==========
+document.querySelectorAll('.nav-item[data-view]').forEach(el => {
+  el.addEventListener('click', () => {
+    currentView = el.dataset.view
+    _multiSelected = {};
+    render();
+  });
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (confirm('确定要重置所有学习数据吗？这将清除答题记录和错题本。')) {
+    state = {
+      answered: {},
+      wrongIds: [],
+      wrongCount: {},
+      currentIndex: 0,
+      mode: 'sequential',
+      filter: 'all',
+      autoAdvance: true,
+      streak: 0,
+      maxStreak: 0,
+      xp: 0,
+      level: 1,
+      questionTimes: {},
+      avgTime: 0,
+      fastestTime: 0,
+      soundEnabled: true,
+    minimalMode: false,
+    userChoices: {},
+    };
+    _multiSelected = {};
+    saveState(state);
+    render();
+  }
+});
+
+// ========== KEYBOARD ==========
+document.addEventListener('keydown', (e) => {
+  if (currentView !== 'practice') return;
+  const q = filteredQuestions[state.currentIndex];
+  const isAnswered = !!state.answered[q?.id];
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); cancelAdvance(); nextQuestion(); }
+  if (e.key === 'Enter') { e.preventDefault(); if (q && q.type === 'multi' && !isAnswered && Object.keys(_multiSelected).length > 0) { submitMulti(); } }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); cancelAdvance(); prevQuestion(); }
+  if (!isAnswered && q && !_isPaused) {
+    const key = e.key.toUpperCase();
+    if (['A', 'B', 'C', 'D'].includes(key)) {
+      if (q.type === 'multi') {
+        selectOption(key);
+      } else {
+        selectOption(key);
+      }
+    }
+  }
+});
+
+// ========== GLOBAL ANIMATIONEND LISTENER (backup trigger) ==========
+document.addEventListener('animationend', function(e) {
+  if (e.target.classList.contains('countdown-fill') && e.target.classList.contains('running')) {
+    // Only fire once per animation (running class is removed after first fire)
+    e.target.classList.remove('running');
+    onAdvanceAnimEnd();
+  }
+});
+
+// ========== SIDEBAR TOGGLE (Mobile) ==========
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  const btn = document.getElementById('menuToggle');
+  const isOpen = sb.classList.toggle('open');
+  if (ov) ov.classList.toggle('show', isOpen);
+  if (btn) btn.textContent = isOpen ? '✕' : '☰';
+}
+// Close sidebar when a nav item is clicked (mobile)
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-item[data-view]').forEach(el => {
+    el.addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      if (sb && sb.classList.contains('open')) toggleSidebar();
+    });
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    const sb = document.getElementById('sidebar');
+    if (sb && sb.classList.contains('open')) toggleSidebar();
+  });
+});
+
+// ========== MINIMAL MODE TOGGLE ==========
+function toggleMinimalMode() {
+  document.body.classList.toggle('minimal-mode');
+  const btn = document.getElementById('minimalToggle');
+  const isMinimal = document.body.classList.contains('minimal-mode');
+  if (btn) {
+    btn.textContent = isMinimal ? '🧘 退出极简' : '🧘 极简';
+    btn.classList.toggle('active', isMinimal);
+  }
+  state.minimalMode = isMinimal;
+  saveState(state);
+}
+function applyMinimalMode() {
+  if (state.minimalMode) {
+    document.body.classList.add('minimal-mode');
+    const btn = document.getElementById('minimalToggle');
+    if (btn) { btn.textContent = '🧘 退出极简'; btn.classList.add('active'); }
+  }
+}
+
+// ========== INIT ==========
+try{initParticles();}catch(e){console.error(e);}
+
+applyMinimalMode();
+render();
+startTimer();
+</script>
+
+
+</body>
+</html>
